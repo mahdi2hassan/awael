@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أوائل — لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1B2A41; --ink-soft:#3A4B66; --paper:#FBF8F2; --paper-dim:#F1ECE1; --brick:#B8532E; --brick-dark:#94411F; --sage:#5C8368; --gold:#C79A2B; --line:#E4DDD0; --white:#FFFFFF; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Almarai',sans-serif; background:var(--paper); color:var(--ink);}
+  h1,h2{font-family:'Cairo',sans-serif;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+
+  #gate, #localgate{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  #gate{display:none;}
+  .gate-box{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:30px; width:100%; max-width:380px; text-align:center;}
+  .gate-box h1{font-size:20px; margin-bottom:6px;}
+  .gate-box p{font-size:12.5px; color:var(--ink-soft); margin-bottom:18px;}
+  .gate-box input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:4px; margin-bottom:12px; font-family:inherit;}
+  .gate-box button{width:100%; background:var(--brick); color:#fff; padding:10px; border-radius:4px; font-weight:800;}
+  .gate-err{font-size:12px; color:var(--brick); margin-top:10px; min-height:14px;}
+  .lg-tag{font-size:11.5px; color:var(--ink-soft); background:var(--paper-dim); border-radius:5px; padding:8px 10px; margin-bottom:14px; line-height:1.7; text-align:right;}
+  .lg-switch{background:none; color:var(--brick); font-size:12px; text-decoration:underline; margin-top:10px;}
+  .pw-row{position:relative;}
+  .pw-row .pw-toggle{position:absolute; left:8px; top:9px; background:none; color:var(--ink-soft); padding:4px;}
+  .auth-logo{width:48px; height:48px; border-radius:50%; background:var(--paper-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:var(--brick);}
+
+  #dash{display:none; padding:26px 20px; max-width:920px; margin:0 auto;}
+  .head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:20px;}
+  .head h1{font-size:21px;}
+  .head p{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+  .head-actions{display:flex; gap:8px;}
+  .icon-btn{background:var(--paper-dim); color:var(--ink-soft); padding:8px 12px; border-radius:5px; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px;}
+  .icon-btn:hover{background:var(--line); color:var(--ink);}
+
+  .warn{background:#FBEFE9; border:1px solid var(--brick); color:var(--brick-dark); border-radius:6px; padding:14px 16px; font-size:12.5px; line-height:1.8; margin-bottom:20px;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .tab{background:var(--white); border:1px solid var(--line); padding:9px 16px; border-radius:5px; font-weight:700; font-size:13px; opacity:.65; display:inline-flex; align-items:center; gap:7px;}
+  .tab.active{opacity:1; border-color:var(--brick); color:var(--brick);}
+  .panel{display:none; animation:panelIn .2s ease;}
+  .panel.active{display:block;}
+  @keyframes panelIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .stats-row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;}
+  .stat-box{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .stat-box .n{font-family:'Cairo',sans-serif; font-weight:900; font-size:22px; color:var(--brick);}
+  .stat-box .l{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+
+  .filter-row{display:flex; gap:7px; margin-bottom:16px; flex-wrap:wrap;}
+  .fbtn{background:var(--white); border:1px solid var(--line); padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; color:var(--ink-soft);}
+  .fbtn.active{background:var(--brick); border-color:var(--brick); color:#fff;}
+
+  .card{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:20px; margin-bottom:18px; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:5px;}
+  .field input{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:4px; font-family:inherit; font-size:13.5px; background:var(--paper);}
+  .btn{background:var(--brick); color:#fff; padding:9px 18px; border-radius:4px; font-weight:800; font-size:13px; display:inline-flex; align-items:center; gap:6px;}
+  .btn:hover{background:var(--brick-dark);}
+  .status{font-size:12px; margin-top:10px; min-height:14px;}
+  .status.ok{color:var(--sage); font-weight:700;} .status.err{color:var(--brick); font-weight:700;}
+
+  .urow{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .urow .u-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:6px;}
+  .urow .u-name{font-weight:800; font-size:14.5px;}
+  .urow .u-meta{font-size:11.5px; color:var(--ink-soft); line-height:1.9; margin-top:3px;}
+  .urow .u-meta b{color:var(--ink);}
+  .urow .u-controls{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+  .urow select{padding:6px 8px; border:1px solid var(--line); border-radius:4px; font-family:inherit; font-size:12.5px;}
+  .urow .save-btn{background:var(--ink); color:#fff; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:700;}
+  .urow .approve-btn{background:var(--sage); color:#fff; padding:7px 16px; border-radius:4px; font-size:12.5px; font-weight:800;}
+  .urow .reject-btn{background:var(--paper-dim); color:var(--brick); padding:7px 16px; border-radius:4px; font-size:12.5px; font-weight:800;}
+  .urow .verify-btn{background:var(--paper-dim); color:var(--ink-soft); padding:6px 12px; border-radius:4px; font-size:11.5px; font-weight:700;}
+  .badge{font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:10px; white-space:nowrap;}
+  .badge.active{background:#E3EFE6; color:#3d6b47;}
+  .badge.pending_payment{background:#FBEFE0; color:#94411F;}
+  .badge.pending_verification{background:#F1ECE1; color:#8a7550;}
+  .badge.rejected{background:#F1ECE1; color:#8a8478;}
+  .code-pill{background:var(--paper-dim); border-radius:4px; padding:2px 8px; font-family:monospace; font-weight:700; color:var(--ink);}
+  .empty-state{background:var(--white); border:1px dashed var(--line); border-radius:6px; padding:30px; text-align:center; color:var(--ink-soft); font-size:13px;}
+
+  .icon{width:1em; height:1em; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-0.15em; flex-shrink:0;}
+  .tab .icon, .icon-btn .icon{width:15px; height:15px;}
+
+  #toast-stack{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:999; width:min(92vw,380px);}
+  .toast{background:var(--ink); color:var(--paper); border-radius:7px; padding:11px 14px; font-size:13px; display:flex; align-items:center; gap:10px; box-shadow:0 12px 28px rgba(27,42,65,.28); animation:toastIn .2s ease;}
+  .toast.err{background:var(--brick-dark);}
+  .toast .toast-msg{flex:1; line-height:1.5;}
+  @keyframes toastIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  @media (max-width:640px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<svg style="display:none" aria-hidden="true">
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+</svg>
+
+<div id="toast-stack"></div>
+
+<!-- ========== LOCAL DEVICE LOCK ========== -->
+<div id="localgate">
+  <div class="gate-box">
+    <div class="auth-logo"><svg class="icon" style="width:22px;height:22px;"><use href="#i-lock"></use></svg></div>
+    <h1 id="lg-title">قفل الجهاز</h1>
+    <p id="lg-sub">اليوزر والباسورد بتوعك متخزنين على الجهاز ده بس</p>
+    <div class="lg-tag" id="lg-setup-tag">أول مرة بتفتح لوحة أوائل من الجهاز ده — اختار يوزر وباسورد محليين لقفل الشاشة دي (منفصلين عن حساب الأدمن على Firebase اللي جاي بعد كده).</div>
+    <input type="text" id="lg-user" placeholder="اليوزر" autocomplete="off">
+    <div class="pw-row">
+      <input type="password" id="lg-pass" placeholder="الباسورد" autocomplete="off">
+      <button type="button" class="pw-toggle" onclick="toggleLgPw()"><svg class="icon" id="lg-pw-icon"><use href="#i-eye"></use></svg></button>
+    </div>
+    <input type="password" id="lg-pass-confirm" placeholder="تأكيد الباسورد" autocomplete="off" style="display:none">
+    <button onclick="submitLocalGate()" id="lg-submit-btn">حفظ وتأمين الجهاز</button>
+    <div class="gate-err" id="lg-err"></div>
+    <button class="lg-switch" id="lg-reset-btn" onclick="resetLocalGate()" style="display:none">نسيت الباسورد؟ إعادة ضبط قفل الجهاز</button>
+  </div>
+</div>
+
+<!-- ========== FIREBASE ADMIN LOGIN ========== -->
+<div id="gate">
+  <div class="gate-box">
+    <h1>لوحة تحكم أوائل</h1>
+    <p>دخول الأدمن (حساب Firebase حقيقي)</p>
+    <input type="email" id="gate-email" placeholder="إيميل الأدمن" autocomplete="email">
+    <input type="password" id="gate-pass" placeholder="كلمة المرور" autocomplete="current-password" onkeydown="if(event.key==='Enter')checkGate()">
+    <button onclick="checkGate()">دخول</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- ========== DASHBOARD ========== -->
+<div id="dash">
+  <div class="head">
+    <div><h1>لوحة تحكم أوائل</h1>
+    <p>اعرف مين عمل حساب ووافق على الاشتراكات يدويًا</p></div>
+    <div class="head-actions">
+      <button class="icon-btn" onclick="lockDeviceNow()"><svg class="icon"><use href="#i-lock"></use></svg> قفل الجهاز</button>
+      <button class="icon-btn" onclick="adminLogout()"><svg class="icon"><use href="#i-logout"></use></svg> خروج</button>
+    </div>
+  </div>
+
+  <div class="warn"><svg class="icon" style="margin-left:6px;"><use href="#i-alert"></use></svg>
+    الدخول هنا بحساب Firebase حقيقي، لازم تكون سجّلت بيه (إيميل وباسورد) من أي مكان، وبعدين تضيف الـ uid بتاعه يدويًا في كولكشن <b>awaelAdmins</b> من Firebase Console — غير كده هيقولك "معندوش صلاحية أدمن" حتى لو الإيميل والباسورد صح. قفل الجهاز طبقة حماية إضافية بسيطة على الجهاز ده بس، مش بديل عن أمان Firebase.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('users', this)"><svg class="icon"><use href="#i-users"></use></svg> المستخدمين</button>
+    <button class="tab" onclick="switchTab('settings', this)"><svg class="icon"><use href="#i-settings"></use></svg> الإعدادات</button>
+  </div>
+
+  <div class="panel active" id="panel-users">
+    <div class="stats-row" id="stats-row"></div>
+    <div class="filter-row" id="filter-row"></div>
+    <div class="status" id="users-status" style="margin-bottom:10px;"></div>
+    <div id="users-list"></div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <div class="field"><label>رقم إنستاباي</label><input type="text" id="set-insta" placeholder="01xxxxxxxxx"></div>
+      <div class="field"><label>رقم فودافون كاش</label><input type="text" id="set-cash" placeholder="01xxxxxxxxx"></div>
+      <div class="field"><label>رقم واتساب للتواصل (بالصيغة الدولية بدون +)</label><input type="text" id="set-whatsapp" placeholder="2010xxxxxxx"></div>
+      <button class="btn" onclick="saveContactSettings()"><svg class="icon"><use href="#i-check"></use></svg> حفظ الإعدادات</button>
+      <div class="status" id="settings-status"></div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.8;">
+        ملحوظة: تغيير الأرقام هنا بيتحفظ في قاعدة البيانات للرجوع ليها، لكن الأرقام المعروضة فعليًا لطلاب أوائل وقت الدفع متكتوبة داخل ملف index.html — لو غيّرت الأرقام لازم تحدّثها هناك كمان.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ic(name){ return `<svg class="icon"><use href="#i-${name}"></use></svg>`; }
+
+function toast(msg, opts){
+  opts = opts || {};
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (opts.type === 'err' ? 'err' : 'ok');
+  el.innerHTML = `${ic(opts.type==='err'?'alert':'check')}<span class="toast-msg">${escapeHtml(msg)}</span>`;
+  stack.appendChild(el);
+  setTimeout(()=>el.remove(), opts.duration || 3200);
+}
+
+/* ================= LOCAL DEVICE LOCK ================= */
+const LOCK_KEY = 'awael_admin_local_lock';
+function bufToHex(buf){ return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+async function hashPass(pass, salt){
+  const enc = new TextEncoder();
+  const digest = await crypto.subtle.digest('SHA-256', enc.encode(salt + ':' + pass));
+  return bufToHex(digest);
+}
+function randomSalt(){ return bufToHex(crypto.getRandomValues(new Uint8Array(16)).buffer); }
+function getLocalLock(){ try{ return JSON.parse(localStorage.getItem(LOCK_KEY) || 'null'); }catch(e){ return null; } }
+
+let lgMode = 'setup';
+function initLocalGate(){
+  const lock = getLocalLock();
+  const setupTag = document.getElementById('lg-setup-tag');
+  const confirmInput = document.getElementById('lg-pass-confirm');
+  const resetBtn = document.getElementById('lg-reset-btn');
+  if(lock){
+    lgMode = 'unlock';
+    document.getElementById('lg-title').textContent = 'قفل الجهاز';
+    document.getElementById('lg-sub').textContent = 'ادخل يوزر وباسورد الجهاز عشان تكمل';
+    setupTag.style.display = 'none'; confirmInput.style.display = 'none';
+    document.getElementById('lg-submit-btn').textContent = 'فتح القفل';
+    document.getElementById('lg-user').value = lock.user || '';
+    resetBtn.style.display = 'block';
+  }else{
+    lgMode = 'setup';
+    document.getElementById('lg-title').textContent = 'أول استخدام — أمّن الجهاز';
+    document.getElementById('lg-sub').textContent = 'اختار يوزر وباسورد محليين لقفل الشاشة دي';
+    setupTag.style.display = 'block'; confirmInput.style.display = 'block';
+    document.getElementById('lg-submit-btn').textContent = 'حفظ وتأمين الجهاز';
+    resetBtn.style.display = 'none';
+  }
+}
+function toggleLgPw(){
+  const inp = document.getElementById('lg-pass'); const icon = document.getElementById('lg-pw-icon');
+  if(inp.type === 'password'){ inp.type = 'text'; icon.innerHTML = '<use href="#i-eye-off"></use>'; }
+  else{ inp.type = 'password'; icon.innerHTML = '<use href="#i-eye"></use>'; }
+}
+async function submitLocalGate(){
+  const user = document.getElementById('lg-user').value.trim();
+  const pass = document.getElementById('lg-pass').value;
+  const err = document.getElementById('lg-err'); err.textContent = '';
+  if(!user || !pass){ err.textContent = 'اكتب اليوزر والباسورد.'; return; }
+  if(lgMode === 'setup'){
+    const confirmPass = document.getElementById('lg-pass-confirm').value;
+    if(pass.length < 4){ err.textContent = 'الباسورد لازم يكون 4 حروف/أرقام على الأقل.'; return; }
+    if(pass !== confirmPass){ err.textContent = 'تأكيد الباسورد مش مطابق.'; return; }
+    const salt = randomSalt(); const hash = await hashPass(pass, salt);
+    localStorage.setItem(LOCK_KEY, JSON.stringify({ user, salt, hash }));
+    unlockToGate();
+  }else{
+    const lock = getLocalLock();
+    if(!lock || lock.user !== user){ err.textContent = 'اليوزر غلط.'; return; }
+    const hash = await hashPass(pass, lock.salt);
+    if(hash !== lock.hash){ err.textContent = 'الباسورد غلط.'; return; }
+    unlockToGate();
+  }
+}
+function unlockToGate(){
+  document.getElementById('localgate').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('gate-email').focus();
+}
+function lockDeviceNow(){
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('lg-user').value = ''; document.getElementById('lg-pass').value = '';
+  initLocalGate();
+  document.getElementById('localgate').style.display = 'flex';
+}
+function resetLocalGate(){
+  localStorage.removeItem(LOCK_KEY);
+  document.getElementById('lg-user').value = ''; document.getElementById('lg-pass').value = '';
+  document.getElementById('lg-err').textContent = '';
+  initLocalGate();
+  toast('اتمسح قفل الجهاز — اعمل إعداد جديد.');
+}
+initLocalGate();
+
+/* ================= Firebase — نفس نظام الدخول بتاع نُدرس معًا ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCM4lbv83xStvHDB31CqPTpb40ss9q04so",
+  authDomain: "studytogether-e8108.firebaseapp.com",
+  projectId: "studytogether-e8108",
+  storageBucket: "studytogether-e8108.firebasestorage.app",
+  messagingSenderId: "1019488103298",
+  appId: "1:1019488103298:web:0ff82b789018ff1418fd9b",
+  measurementId: "G-DKCCXL9WTL"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const USERS_COL = 'awaelUsers';
+const ADMINS_COL = 'awaelAdmins';
+
+async function checkGate(){
+  const email = document.getElementById('gate-email').value.trim();
+  const pass = document.getElementById('gate-pass').value;
+  const err = document.getElementById('gate-err'); err.textContent = '';
+  if(!email || !pass){ err.textContent = 'اكتب الإيميل وكلمة المرور.'; return; }
+  try{
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    const adminDoc = await db.collection(ADMINS_COL).doc(cred.user.uid).get();
+    if(!adminDoc.exists){
+      err.textContent = 'الحساب ده معندوش صلاحية أدمن.';
+      await auth.signOut();
+      return;
+    }
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    loadUsers();
+  }catch(e){
+    err.textContent = 'دخول فشل: ' + (e.message || e.code);
+  }
+}
+function adminLogout(){
+  auth.signOut();
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+}
+function switchTab(name, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name === 'settings') loadContactSettings();
+}
+
+/* ================= المستخدمين ================= */
+const PLAN_LABELS = { sub1:'الاشتراك الأول', sub2:'الاشتراك الثاني', sub3:'الاشتراك الثالث', pro:'البرو (مدى الحياة)' };
+const STATUS_LABELS = { active:'نشط ✓', pending_payment:'قيد المراجعة', pending_verification:'بانتظار تأكيد الإيميل', rejected:'مرفوض' };
+let allUsers = [];
+let currentFilter = 'pending_payment';
+
+async function loadUsers(){
+  const el = document.getElementById('users-list');
+  el.innerHTML = 'جاري التحميل...';
+  try{
+    const snap = await db.collection(USERS_COL).orderBy('createdAt','desc').limit(300).get();
+    allUsers = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderStats();
+    renderFilters();
+    renderUsersList();
+  }catch(err){
+    el.innerHTML = '<div class="empty-state">تعذّر تحميل المستخدمين: '+escapeHtml(err.message)+'</div>';
+  }
+}
+function renderStats(){
+  const counts = { all: allUsers.length, pending_payment:0, pending_verification:0, active:0, rejected:0 };
+  allUsers.forEach(u=>{ const s = u.status || 'pending_verification'; if(counts[s]!==undefined) counts[s]++; });
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-box"><div class="n">${counts.all}</div><div class="l">كل الحسابات</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--gold);">${counts.pending_payment}</div><div class="l">محتاجة موافقة</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--sage);">${counts.active}</div><div class="l">مشتركين نشطين</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--ink-soft);">${counts.pending_verification}</div><div class="l">لسه بيأكدوا إيميلهم</div></div>`;
+}
+function renderFilters(){
+  const filters = [
+    ['pending_payment','محتاجة موافقة'], ['all','الكل'], ['active','نشط'],
+    ['pending_verification','بانتظار الإيميل'], ['rejected','مرفوض']
+  ];
+  document.getElementById('filter-row').innerHTML = filters.map(([k,l])=>
+    `<button class="fbtn ${k===currentFilter?'active':''}" onclick="setFilter('${k}')">${l}</button>`
+  ).join('');
+}
+function setFilter(k){ currentFilter = k; renderFilters(); renderUsersList(); }
+
+function fmtDate(ts){
+  if(!ts || !ts.toDate) return '—';
+  try{ return ts.toDate().toLocaleString('ar-EG', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  catch(e){ return '—'; }
+}
+
+function renderUsersList(){
+  const el = document.getElementById('users-list');
+  let list = allUsers;
+  if(currentFilter !== 'all') list = list.filter(u => (u.status || 'pending_verification') === currentFilter);
+  if(!list.length){ el.innerHTML = '<div class="empty-state">مفيش حسابات في القسم ده دلوقتي.</div>'; return; }
+
+  el.innerHTML = list.map(u=>{
+    const status = u.status || 'pending_verification';
+    const plan = u.plan ? (PLAN_LABELS[u.plan] || u.plan) : '— لسه ماختارش —';
+    const verified = u.emailVerified ? '✓ متأكد' : '✕ لسه مش متأكد';
+    const quickActions = (status === 'pending_payment' || status === 'pending_verification')
+      ? `<button class="approve-btn" onclick="approveUser('${u.id}')">${ic('check')} موافقة وتفعيل</button>
+         <button class="reject-btn" onclick="rejectUser('${u.id}')">${ic('x')} رفض</button>`
+      : '';
+    const verifyBtn = !u.emailVerified
+      ? `<button class="verify-btn" onclick="forceVerifyEmail('${u.id}')">تأكيد الإيميل يدويًا</button>` : '';
+
+    return `<div class="urow" id="urow-${u.id}">
+      <div class="u-top">
+        <div>
+          <div class="u-name">${escapeHtml(u.name||'—')} <span class="badge ${status}">${STATUS_LABELS[status]||status}</span></div>
+          <div class="u-meta">
+            📧 ${escapeHtml(u.email||'—')} &nbsp;·&nbsp; 📱 ${escapeHtml(u.phone||'—')}<br>
+            🎓 <b>${escapeHtml(u.uniName||u.uniCode||'—')}</b> &nbsp;·&nbsp; 💳 الخطة: <b>${plan}</b><br>
+            الإيميل: ${verified} ${u.verificationCode ? `&nbsp;·&nbsp; الكود: <span class="code-pill">${escapeHtml(u.verificationCode)}</span>` : ''}<br>
+            📅 اتسجل: ${fmtDate(u.createdAt)} ${u.planRequestedAt ? '&nbsp;·&nbsp; 💰 طلب الاشتراك: '+fmtDate(u.planRequestedAt) : ''}
+          </div>
+        </div>
+      </div>
+      <div class="u-controls">
+        ${quickActions}
+        ${verifyBtn}
+        <select id="plan-${u.id}">
+          <option value="">بدون خطة</option>
+          ${Object.keys(PLAN_LABELS).map(k=>`<option value="${k}" ${k===u.plan?'selected':''}>${PLAN_LABELS[k]}</option>`).join('')}
+        </select>
+        <select id="status-${u.id}">
+          ${Object.keys(STATUS_LABELS).map(k=>`<option value="${k}" ${k===status?'selected':''}>${STATUS_LABELS[k]}</option>`).join('')}
+        </select>
+        <button class="save-btn" onclick="saveUser('${u.id}')">${ic('check')} حفظ يدوي</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveUser(uid){
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ status:'active' });
+    toast('✓ تم تفعيل الحساب.');
+    loadUsers();
+  }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+async function rejectUser(uid){
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ status:'rejected' });
+    toast('تم رفض الحساب.');
+    loadUsers();
+  }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+async function forceVerifyEmail(uid){
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ emailVerified:true });
+    toast('✓ اتأكد الإيميل يدويًا.');
+    loadUsers();
+  }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+async function saveUser(uid){
+  const plan = document.getElementById('plan-'+uid).value;
+  const status = document.getElementById('status-'+uid).value;
+  const statusEl = document.getElementById('users-status');
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ plan: plan || null, status });
+    statusEl.className = 'status ok'; statusEl.textContent = '✓ تم تحديث المستخدم.';
+    toast('تم تحديث بيانات المستخدم.');
+    loadUsers();
+  }catch(err){ statusEl.className = 'status err'; statusEl.textContent = 'حصل خطأ: '+err.message; toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+
+/* ================= الإعدادات ================= */
+async function loadContactSettings(){
+  try{
+    const doc = await db.collection('awaelSettings').doc('contact').get();
+    const d = doc.exists ? doc.data() : {};
+    document.getElementById('set-insta').value = d.insta || '01007586279';
+    document.getElementById('set-cash').value = d.cash || '01153652279';
+    document.getElementById('set-whatsapp').value = d.whatsapp || '201153652279';
+  }catch(e){}
+}
+async function saveContactSettings(){
+  const insta = document.getElementById('set-insta').value.trim();
+  const cash = document.getElementById('set-cash').value.trim();
+  const whatsapp = document.getElementById('set-whatsapp').value.trim();
+  const statusEl = document.getElementById('settings-status');
+  try{
+    await db.collection('awaelSettings').doc('contact').set({ insta, cash, whatsapp }, { merge:true });
+    statusEl.className = 'status ok'; statusEl.textContent = '✓ اتحفظت الإعدادات.';
+    toast('تم حفظ إعدادات التواصل.');
+  }catch(err){ statusEl.className = 'status err'; statusEl.textContent = 'حصل خطأ: '+err.message; }
+}
+</script>
+</body>
+</html>
