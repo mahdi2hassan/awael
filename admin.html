@@ -151,7 +151,7 @@
   </div>
 
   <div class="warn"><svg class="icon" style="margin-left:6px;"><use href="#i-alert"></use></svg>
-    الدخول هنا بحساب Firebase حقيقي، لازم تكون سجّلت بيه (إيميل وباسورد) من أي مكان، وبعدين تضيف الـ uid بتاعه يدويًا في كولكشن <b>awaelAdmins</b> من Firebase Console — غير كده هيقولك "معندوش صلاحية أدمن" حتى لو الإيميل والباسورد صح. قفل الجهاز طبقة حماية إضافية بسيطة على الجهاز ده بس، مش بديل عن أمان Firebase.
+    الدخول هنا بنفس حسابات الأدمن بتاعة نُدرس معًا بالظبط (كولكشن <b>admins</b> المشترك) — أي حساب عنده صلاحية أدمن هناك هيفتح لوحة أوائل هنا كمان من غير ما تضيف حاجة جديدة. لو حساب جديد مش مسجل أدمن في أي المنصتين، سجّل دخول بيه هنا مرة (هيدّيك رسالة "معندوش صلاحية أدمن")، وبعدين ضيف الـ uid بتاعه يدويًا في كولكشن admins من Firebase Console. قفل الجهاز طبقة حماية إضافية بسيطة على الجهاز ده بس، مش بديل عن أمان Firebase.
   </div>
 
   <div class="tabs">
@@ -291,7 +291,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const USERS_COL = 'awaelUsers';
-const ADMINS_COL = 'awaelAdmins';
+const ADMINS_COL = 'admins'; // نفس كولكشن الأدمنز بتاع نُدرس معًا — نفس الحسابات تفتح اللوحتين
 
 async function checkGate(){
   const email = document.getElementById('gate-email').value.trim();
