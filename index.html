@@ -1496,7 +1496,7 @@ async function createAccountAndSendCode(){
 
     let mailOk = true;
     try{
-      await sendEmailJS(EMAILJS_TEMPLATE_AUTOREPLY, { verification_code: code, message: 'كود تفعيل حسابك على أوائل: ' + code });
+      await sendEmailJS(EMAILJS_TEMPLATE_AUTOREPLY, { otp_code: code, message: 'كود تفعيل حسابك على أوائل: ' + code });
     }catch(mailErr){ mailOk = false; console.warn('EmailJS error:', mailErr); }
 
     document.getElementById('verify-code').value = '';
@@ -1513,7 +1513,7 @@ async function resendCode(){
   const expiresAt = Date.now() + 10*60*1000;
   try{
     await db.collection(USERS_COL).doc(currentUid).update({ awaelVerificationCode: code, awaelVerificationExpiresAt: expiresAt });
-    await sendEmailJS(EMAILJS_TEMPLATE_AUTOREPLY, { verification_code: code, message: 'كود تفعيل حسابك على أوائل: ' + code });
+    await sendEmailJS(EMAILJS_TEMPLATE_AUTOREPLY, { otp_code: code, message: 'كود تفعيل حسابك على أوائل: ' + code });
     setMsg('verify-status','✓ اتبعت كود جديد على إيميلك.','ok');
   }catch(err){ setMsg('verify-status','تعذّر إعادة الإرسال — جرب "تواصل على واتساب" تحت.','err'); }
 }
