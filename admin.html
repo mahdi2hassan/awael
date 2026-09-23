@@ -151,7 +151,7 @@
   </div>
 
   <div class="warn"><svg class="icon" style="margin-left:6px;"><use href="#i-alert"></use></svg>
-    الدخول هنا بنفس حسابات الأدمن بتاعة نُدرس معًا بالظبط (كولكشن <b>admins</b> المشترك) — أي حساب عنده صلاحية أدمن هناك هيفتح لوحة أوائل هنا كمان من غير ما تضيف حاجة جديدة. لو حساب جديد مش مسجل أدمن في أي المنصتين، سجّل دخول بيه هنا مرة (هيدّيك رسالة "معندوش صلاحية أدمن")، وبعدين ضيف الـ uid بتاعه يدويًا في كولكشن admins من Firebase Console. قفل الجهاز طبقة حماية إضافية بسيطة على الجهاز ده بس، مش بديل عن أمان Firebase.
+    الدخول هنا بنفس حسابات الأدمن بتاعة نُدرس معًا بالظبط (كولكشن <b>admins</b> المشترك) — أي حساب عنده صلاحية أدمن هناك هيفتح لوحة أوائل هنا كمان من غير ما تضيف حاجة جديدة. لو حساب جديد مش مسجل أدمن في أي المنصتين، سجّل دخول بيه هنا مرة (هيدّيك رسالة "معندوش صلاحية أدمن")، وبعدين ضيف الـ uid بتاعه يدويًا في كولكشن admins من Firebase Console. وبنفس المنطق، حسابات الطلاب كمان بقت في نفس كولكشن <b>users</b> بتاع نُدرس معًا — أي حساب اتعمل هناك يقدر يدخل على أوائل بنفس الإيميل والباسورد من غير حساب جديد. قفل الجهاز طبقة حماية إضافية بسيطة على الجهاز ده بس، مش بديل عن أمان Firebase.
   </div>
 
   <div class="tabs">
@@ -290,7 +290,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const USERS_COL = 'awaelUsers';
+const USERS_COL = 'users'; // نفس كولكشن نُدرس معًا — أي حساب موجود هناك يظهر هنا لو عنده بيانات أوائل
 const ADMINS_COL = 'admins'; // نفس كولكشن الأدمنز بتاع نُدرس معًا — نفس الحسابات تفتح اللوحتين
 
 async function checkGate(){
@@ -336,7 +336,7 @@ async function loadUsers(){
   const el = document.getElementById('users-list');
   el.innerHTML = 'جاري التحميل...';
   try{
-    const snap = await db.collection(USERS_COL).orderBy('createdAt','desc').limit(300).get();
+    const snap = await db.collection(USERS_COL).orderBy('awaelCreatedAt','desc').limit(300).get();
     allUsers = snap.docs.map(d=>({ id:d.id, ...d.data() }));
     renderStats();
     renderFilters();
@@ -347,7 +347,7 @@ async function loadUsers(){
 }
 function renderStats(){
   const counts = { all: allUsers.length, pending_payment:0, pending_verification:0, active:0, rejected:0 };
-  allUsers.forEach(u=>{ const s = u.status || 'pending_verification'; if(counts[s]!==undefined) counts[s]++; });
+  allUsers.forEach(u=>{ const s = u.awaelStatus || 'pending_verification'; if(counts[s]!==undefined) counts[s]++; });
   document.getElementById('stats-row').innerHTML = `
     <div class="stat-box"><div class="n">${counts.all}</div><div class="l">كل الحسابات</div></div>
     <div class="stat-box"><div class="n" style="color:var(--gold);">${counts.pending_payment}</div><div class="l">محتاجة موافقة</div></div>
@@ -374,18 +374,18 @@ function fmtDate(ts){
 function renderUsersList(){
   const el = document.getElementById('users-list');
   let list = allUsers;
-  if(currentFilter !== 'all') list = list.filter(u => (u.status || 'pending_verification') === currentFilter);
+  if(currentFilter !== 'all') list = list.filter(u => (u.awaelStatus || 'pending_verification') === currentFilter);
   if(!list.length){ el.innerHTML = '<div class="empty-state">مفيش حسابات في القسم ده دلوقتي.</div>'; return; }
 
   el.innerHTML = list.map(u=>{
-    const status = u.status || 'pending_verification';
-    const plan = u.plan ? (PLAN_LABELS[u.plan] || u.plan) : '— لسه ماختارش —';
-    const verified = u.emailVerified ? '✓ متأكد' : '✕ لسه مش متأكد';
+    const status = u.awaelStatus || 'pending_verification';
+    const plan = u.awaelPlan ? (PLAN_LABELS[u.awaelPlan] || u.awaelPlan) : '— لسه ماختارش —';
+    const verified = u.awaelEmailVerified ? '✓ متأكد' : '✕ لسه مش متأكد';
     const quickActions = (status === 'pending_payment' || status === 'pending_verification')
       ? `<button class="approve-btn" onclick="approveUser('${u.id}')">${ic('check')} موافقة وتفعيل</button>
          <button class="reject-btn" onclick="rejectUser('${u.id}')">${ic('x')} رفض</button>`
       : '';
-    const verifyBtn = !u.emailVerified
+    const verifyBtn = !u.awaelEmailVerified
       ? `<button class="verify-btn" onclick="forceVerifyEmail('${u.id}')">تأكيد الإيميل يدويًا</button>` : '';
 
     return `<div class="urow" id="urow-${u.id}">
@@ -394,9 +394,9 @@ function renderUsersList(){
           <div class="u-name">${escapeHtml(u.name||'—')} <span class="badge ${status}">${STATUS_LABELS[status]||status}</span></div>
           <div class="u-meta">
             📧 ${escapeHtml(u.email||'—')} &nbsp;·&nbsp; 📱 ${escapeHtml(u.phone||'—')}<br>
-            🎓 <b>${escapeHtml(u.uniName||u.uniCode||'—')}</b> &nbsp;·&nbsp; 💳 الخطة: <b>${plan}</b><br>
-            الإيميل: ${verified} ${u.verificationCode ? `&nbsp;·&nbsp; الكود: <span class="code-pill">${escapeHtml(u.verificationCode)}</span>` : ''}<br>
-            📅 اتسجل: ${fmtDate(u.createdAt)} ${u.planRequestedAt ? '&nbsp;·&nbsp; 💰 طلب الاشتراك: '+fmtDate(u.planRequestedAt) : ''}
+            🎓 <b>${escapeHtml(u.awaelUniName||u.awaelUniCode||'—')}</b> &nbsp;·&nbsp; 💳 الخطة: <b>${plan}</b><br>
+            الإيميل: ${verified} ${u.awaelVerificationCode ? `&nbsp;·&nbsp; الكود: <span class="code-pill">${escapeHtml(u.awaelVerificationCode)}</span>` : ''}<br>
+            📅 اتسجل: ${fmtDate(u.awaelCreatedAt)} ${u.awaelPlanRequestedAt ? '&nbsp;·&nbsp; 💰 طلب الاشتراك: '+fmtDate(u.awaelPlanRequestedAt) : ''}
           </div>
         </div>
       </div>
@@ -405,7 +405,7 @@ function renderUsersList(){
         ${verifyBtn}
         <select id="plan-${u.id}">
           <option value="">بدون خطة</option>
-          ${Object.keys(PLAN_LABELS).map(k=>`<option value="${k}" ${k===u.plan?'selected':''}>${PLAN_LABELS[k]}</option>`).join('')}
+          ${Object.keys(PLAN_LABELS).map(k=>`<option value="${k}" ${k===u.awaelPlan?'selected':''}>${PLAN_LABELS[k]}</option>`).join('')}
         </select>
         <select id="status-${u.id}">
           ${Object.keys(STATUS_LABELS).map(k=>`<option value="${k}" ${k===status?'selected':''}>${STATUS_LABELS[k]}</option>`).join('')}
@@ -418,21 +418,21 @@ function renderUsersList(){
 
 async function approveUser(uid){
   try{
-    await db.collection(USERS_COL).doc(uid).update({ status:'active' });
+    await db.collection(USERS_COL).doc(uid).update({ awaelStatus:'active' });
     toast('✓ تم تفعيل الحساب.');
     loadUsers();
   }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
 }
 async function rejectUser(uid){
   try{
-    await db.collection(USERS_COL).doc(uid).update({ status:'rejected' });
+    await db.collection(USERS_COL).doc(uid).update({ awaelStatus:'rejected' });
     toast('تم رفض الحساب.');
     loadUsers();
   }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
 }
 async function forceVerifyEmail(uid){
   try{
-    await db.collection(USERS_COL).doc(uid).update({ emailVerified:true });
+    await db.collection(USERS_COL).doc(uid).update({ awaelEmailVerified:true });
     toast('✓ اتأكد الإيميل يدويًا.');
     loadUsers();
   }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
@@ -442,7 +442,7 @@ async function saveUser(uid){
   const status = document.getElementById('status-'+uid).value;
   const statusEl = document.getElementById('users-status');
   try{
-    await db.collection(USERS_COL).doc(uid).update({ plan: plan || null, status });
+    await db.collection(USERS_COL).doc(uid).update({ awaelPlan: plan || null, awaelStatus: status });
     statusEl.className = 'status ok'; statusEl.textContent = '✓ تم تحديث المستخدم.';
     toast('تم تحديث بيانات المستخدم.');
     loadUsers();

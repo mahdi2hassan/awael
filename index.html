@@ -657,6 +657,18 @@ body{
     </div>
   </div>
 
+  <!-- CHOOSE UNIVERSITY (لحسابات نُدرس معًا الجاية هنا لأول مرة) -->
+  <div class="gate-card" id="screen-choose-uni" style="display:none;">
+    <div class="gate-logo">🎓</div>
+    <div class="gate-title" style="font-size:19px;">اختار جامعتك</div>
+    <div class="gate-sub">أهلاً بيك في أوائل! اختار جامعتك عشان نكمل تجهيز حسابك</div>
+    <div class="gate-field">
+      <select id="cu-uni" style="width:100%;padding:13px 16px;background:var(--bg);border:2px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;"></select>
+    </div>
+    <button class="btn-gate" onclick="saveUniAndContinue()">متابعة ←</button>
+    <div class="status" id="choose-uni-status"></div>
+  </div>
+
   <!-- PLANS -->
   <div class="gate-card gate-wide" id="screen-plans" style="display:none;">
     <div class="gate-back" id="plans-back-btn" style="display:none;" onclick="exitPlansFlow()">→ رجوع</div>
@@ -1308,9 +1320,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-/* مجموعة بيانات منفصلة (awaelUsers / awaelAdmins) عشان حسابات أوائل متتلخبطش مع حسابات نُدرس معًا
-   رغم إنهم بيستخدموا نفس مشروع Firebase (نفس نظام الدخول). */
-const USERS_COL = 'awaelUsers';
+/* نفس كولكشن المستخدمين بتاع نُدرس معًا (users) — عشان أي حساب اتعمل هناك يقدر يدخل هنا
+   بنفس الإيميل والباسورد من غير ما يعمل حساب جديد. عشان الاشتراك في أوائل يفضل مستقل
+   عن اشتراك نُدرس معًا (متفتحش المحتوى لواحد دافع في المنصة التانية بس)، كل بيانات
+   أوائل بتتخزن في حقول لها بادئة "awael" جوه نفس المستند، من غير ما تلمس حقول
+   نُدرس معًا الأصلية (name/email/phone بس هما المشتركين). */
+const USERS_COL = 'users';
 
 /* ================= EmailJS — نفس السكربتات بس متصلحة عشان تبعت فعليًا =================
    المشكلة الأصلية: النداء كان بيتبعت بـ fetch مباشر لـ REST endpoint، وده بيترفض بصمت من
@@ -1407,7 +1422,7 @@ function genCode(){ return String(Math.floor(100000 + Math.random()*900000)); }
 
 /* ─── إظهار شاشة من شاشات الدخول ─── */
 function showAuthScreen(id){
-  ['screen-landing','screen-signup','screen-verify','screen-plans','screen-payment','screen-login','screen-pending']
+  ['screen-landing','screen-signup','screen-verify','screen-choose-uni','screen-plans','screen-payment','screen-login','screen-pending']
     .forEach(s=>{ const el=document.getElementById(s); if(el) el.style.display = (s===id) ? 'block' : 'none'; });
   document.getElementById('join-screen').style.display='none';
   document.getElementById('app').style.display='none';
@@ -1472,11 +1487,12 @@ async function createAccountAndSendCode(){
     const expiresAt = Date.now() + 10*60*1000;
 
     await db.collection(USERS_COL).doc(currentUid).set({
-      name, email, phone, uniCode, uniName: pendingUser.uniName,
-      plan:null, status:'pending_verification', emailVerified:false,
-      verificationCode: code, verificationExpiresAt: expiresAt,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+      name, email, phone,
+      awaelUniCode: uniCode, awaelUniName: pendingUser.uniName,
+      awaelPlan:null, awaelStatus:'pending_verification', awaelEmailVerified:false,
+      awaelVerificationCode: code, awaelVerificationExpiresAt: expiresAt,
+      awaelCreatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
 
     let mailOk = true;
     try{
@@ -1496,7 +1512,7 @@ async function resendCode(){
   const code = genCode();
   const expiresAt = Date.now() + 10*60*1000;
   try{
-    await db.collection(USERS_COL).doc(currentUid).update({ verificationCode: code, verificationExpiresAt: expiresAt });
+    await db.collection(USERS_COL).doc(currentUid).update({ awaelVerificationCode: code, awaelVerificationExpiresAt: expiresAt });
     await sendEmailJS(EMAILJS_TEMPLATE_AUTOREPLY, { verification_code: code, message: 'كود تفعيل حسابك على أوائل: ' + code });
     setMsg('verify-status','✓ اتبعت كود جديد على إيميلك.','ok');
   }catch(err){ setMsg('verify-status','تعذّر إعادة الإرسال — جرب "تواصل على واتساب" تحت.','err'); }
@@ -1509,9 +1525,9 @@ async function confirmCode(){
   try{
     const doc = await db.collection(USERS_COL).doc(currentUid).get();
     const data = doc.data();
-    if(Date.now() > data.verificationExpiresAt){ setMsg('verify-status','الكود انتهت صلاحيته — اضغط "إعادة إرسال الكود".','err'); return; }
-    if(entered !== data.verificationCode){ setMsg('verify-status','الكود غلط، حاول تاني.','err'); return; }
-    await db.collection(USERS_COL).doc(currentUid).update({ emailVerified:true });
+    if(Date.now() > data.awaelVerificationExpiresAt){ setMsg('verify-status','الكود انتهت صلاحيته — اضغط "إعادة إرسال الكود".','err'); return; }
+    if(entered !== data.awaelVerificationCode){ setMsg('verify-status','الكود غلط، حاول تاني.','err'); return; }
+    await db.collection(USERS_COL).doc(currentUid).update({ awaelEmailVerified:true });
     setMsg('verify-status','✓ تم التأكيد.','ok');
     plansMode = 'signup';
     document.getElementById('plans-back-btn').style.display = 'none';
@@ -1545,7 +1561,7 @@ function selectPlan(planKey){
 }
 function backToPlansFromPayment(){ showAuthScreen('screen-plans'); }
 function exitPlansFlow(){
-  if(plansMode === 'upgrade' && currentUserDoc && currentUserDoc.status === 'active'){
+  if(plansMode === 'upgrade' && currentUserDoc && currentUserDoc.awaelStatus === 'active'){
     document.getElementById('gate-screen').style.display='none';
     document.getElementById('app').style.display='block';
   }else{
@@ -1568,8 +1584,8 @@ async function finalizePaidPlan(){
   try{
     if(currentUid){
       await db.collection(USERS_COL).doc(currentUid).update({
-        plan: selectedPlanKey, status:'pending_payment',
-        planRequestedAt: firebase.firestore.FieldValue.serverTimestamp()
+        awaelPlan: selectedPlanKey, awaelStatus:'pending_payment',
+        awaelPlanRequestedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
     try{ await sendEmailJS(EMAILJS_TEMPLATE_INVOICE, planParams); }catch(mailErr){ console.warn('EmailJS invoice error:', mailErr); }
@@ -1631,31 +1647,72 @@ async function forgotPassword(){
   }catch(err){ setMsg('login-status', friendlyAuthError(err), 'err'); }
 }
 
-/* ─── توجيه المستخدم للشاشة المناسبة حسب حالة حسابه ─── */
+/* ─── توجيه المستخدم للشاشة المناسبة حسب حالة حسابه ───
+   لو الحساب جاي من نُدرس معًا (نفس الكولكشن) ومعندوش بيانات أوائل خالص، بنعتبر
+   إيميله متأكد أصلاً (لأنه دخل بنجاح بنفس الحساب) ومنطلبش منه كود تاني —
+   بس لازم يختار جامعته الأول قبل ما يكمل لخطط الاشتراك. */
 function routeUser(d){
   currentUserDoc = d;
-  pendingUser = { name:d.name, email:d.email, phone:d.phone, uniCode:d.uniCode, uniName:d.uniName };
-  if(!d.emailVerified){
+  pendingUser = { name:d.name, email:d.email, phone:d.phone, uniCode:d.awaelUniCode, uniName:d.awaelUniName };
+
+  const hasAwaelSignup = d.awaelStatus !== undefined;
+
+  if(hasAwaelSignup && !d.awaelEmailVerified){
     showAuthScreen('screen-verify');
     return;
   }
-  if(d.status === 'active'){
+  if(d.awaelStatus === 'active'){
     enterApp(d);
     return;
   }
-  if(d.status === 'rejected'){
+  if(d.awaelStatus === 'rejected'){
     showRejectedScreen();
     return;
   }
-  if(d.status === 'pending_payment'){
+  if(d.awaelStatus === 'pending_payment'){
     showPendingScreen();
     return;
   }
-  // اتأكد الإيميل بس لسه مختارش خطة
+  if(!d.awaelUniCode){
+    // حساب جاي من نُدرس معًا لأول مرة هنا — يختار جامعته الأول
+    renderChooseUniSelect();
+    showAuthScreen('screen-choose-uni');
+    return;
+  }
+  // متأكد ومختار جامعته بس لسه مختارش خطة
   plansMode = 'signup';
   document.getElementById('plans-back-btn').style.display = 'none';
   renderPlansGrid();
   showAuthScreen('screen-plans');
+}
+
+function renderChooseUniSelect(){
+  const sel = document.getElementById('cu-uni');
+  if(!sel || sel.options.length) return; // اتعمل قبل كده
+  let html = '';
+  REGION_ORDER.forEach(region=>{
+    const inRegion = UNIVERSITIES.filter(u=>u.region===region);
+    if(!inRegion.length) return;
+    html += `<optgroup label="${region}">` + inRegion.map(u=>`<option value="${u.code}">${u.name}</option>`).join('') + `</optgroup>`;
+  });
+  sel.innerHTML = html;
+}
+async function saveUniAndContinue(){
+  const uniCode = document.getElementById('cu-uni').value;
+  if(!uniCode){ setMsg('choose-uni-status','اختار جامعتك.','err'); return; }
+  const uni = UNIVERSITIES.find(u=>u.code===uniCode);
+  try{
+    await db.collection(USERS_COL).doc(currentUid).set({
+      awaelUniCode: uniCode, awaelUniName: uni ? uni.name : uniCode,
+      awaelEmailVerified:true,
+      awaelCreatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge:true });
+    pendingUser.uniCode = uniCode; pendingUser.uniName = uni ? uni.name : uniCode;
+    plansMode = 'signup';
+    document.getElementById('plans-back-btn').style.display = 'none';
+    renderPlansGrid();
+    showAuthScreen('screen-plans');
+  }catch(err){ setMsg('choose-uni-status','حصل خطأ: '+err.message,'err'); }
 }
 
 /* ═══════════════ دخول التطبيق (محتوى الجامعة) ═══════════════ */
@@ -1664,7 +1721,7 @@ function enterApp(d){
   document.getElementById('join-screen').style.display='none';
   document.getElementById('app').style.display='block';
 
-  const plan = PLANS[d.plan];
+  const plan = PLANS[d.awaelPlan];
   document.getElementById('hdrPill').textContent = plan ? (plan.name + ' · نشط') : 'حسابك نشط';
 
   const banner = document.getElementById('top-banner');
@@ -1674,7 +1731,7 @@ function enterApp(d){
   document.getElementById('home-locked').style.display = 'none';
   document.getElementById('home-content').style.display = 'block';
 
-  const u = UNIVERSITIES.find(x=>x.code===d.uniCode) || UNIVERSITIES[0];
+  const u = UNIVERSITIES.find(x=>x.code===d.awaelUniCode) || UNIVERSITIES[0];
   if(u.code === 'BUS'){
     document.getElementById('heroBadge').textContent = '✦ بوابتك الجامعية الذكية';
     document.getElementById('heroTitle').textContent = 'أهلًا ' + (d.name ? d.name.split(' ')[0] : '') + '، كل خدماتك في مكان واحد';
@@ -1754,7 +1811,7 @@ function doLogin(){
 }
 
 function showPage(id){
-  if(id.indexOf('pg-')===0 && (!currentUserDoc || currentUserDoc.status !== 'active')){
+  if(id.indexOf('pg-')===0 && (!currentUserDoc || currentUserDoc.awaelStatus !== 'active')){
     goHome(); return; // محتوى مقفول لحد الاشتراك
   }
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -1764,7 +1821,7 @@ function showPage(id){
 function goHome(){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('home').classList.add('active');
-  const locked = !currentUserDoc || currentUserDoc.status !== 'active';
+  const locked = !currentUserDoc || currentUserDoc.awaelStatus !== 'active';
   document.getElementById('home-locked').style.display = locked ? 'block' : 'none';
   document.getElementById('home-content').style.display = locked ? 'none' : 'block';
   window.scrollTo({top:0,behavior:'smooth'});
