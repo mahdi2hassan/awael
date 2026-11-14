@@ -587,6 +587,9 @@ body{
 .top-banner{border-radius:12px;padding:11px 15px;font-size:12px;font-weight:700;margin-bottom:14px;text-align:center;line-height:1.7;}
 .top-banner.pending{background:rgba(199,154,43,.12);color:#8a6b1d;border:1px solid rgba(199,154,43,.3);}
 .top-banner.active{background:rgba(92,131,104,.12);color:#3d6b47;border:1px solid rgba(92,131,104,.3);}
+.bio-offer{position:fixed;bottom:16px;right:16px;left:16px;max-width:380px;margin:auto;background:#fff;border:1px solid var(--b2);border-radius:12px;padding:14px;box-shadow:0 10px 30px rgba(27,42,65,.18);z-index:9999;font-size:13px;line-height:1.7}
+.bio-offer button{margin-top:8px;margin-left:6px;padding:7px 16px;border-radius:8px;font-weight:800;background:var(--p1);color:#fff}
+.bio-offer button.no{background:#eee;color:var(--text)}
 </style>
 </head>
 <body>
@@ -697,6 +700,9 @@ body{
     <div class="gate-hint">
       حوّل المبلغ على أي رقم من الرقمين فوق، وبعدين دوس الزرار تحت وابعتلنا سكرين شوت التحويل على واتساب — حسابك هيتفعّل بعد ما فريقنا يراجع التحويل.
     </div>
+    <div class="gate-field" style="margin-top:14px"><label>كود الخصم (اختياري)</label><div style="display:flex;gap:6px"><input type="text" id="pay-coupon" placeholder="CODE" style="letter-spacing:normal;text-transform:uppercase"/><button class="btn-gate" style="width:auto;padding:0 16px;margin:0" onclick="applyCoupon()">تطبيق</button></div></div>
+    <div class="gate-hint" id="pay-ref-line" style="font-weight:800"></div>
+    <div class="gate-field"><label>صورة إيصال التحويل (اختياري — بتسرّع المراجعة)</label><input type="file" id="pay-receipt" accept="image/*" onchange="payPickReceipt(this)"/></div>
     <a class="btn-join" id="wa-confirm-link" href="#" target="_blank" style="margin-top:14px;">💬 تأكيد التحويل على واتساب</a>
     <button class="btn-gate" style="margin-top:12px;" onclick="finalizePaidPlan()">تم التحويل ✓</button>
     <div class="status" id="payment-status"></div>
@@ -713,8 +719,37 @@ body{
     <div class="gate-field"><label>كلمة المرور</label><input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password" style="letter-spacing:normal;font-weight:400;" onkeydown="if(event.key==='Enter')loginUser()"/></div>
     <button class="btn-gate" id="li-submit-btn" onclick="loginUser()">دخول ←</button>
     <div class="status" id="login-status"></div>
+    <div class="gate-footer" style="cursor:pointer;color:var(--p1);font-weight:800;" onclick="showNidScreen()">🪪 الدخول بالرقم القومي</div>
     <div class="gate-footer" style="cursor:pointer;color:var(--p1);font-weight:800;" onclick="forgotPassword()">نسيت كلمة المرور؟</div>
     <div class="gate-footer">لسه معملتش حساب؟ <span style="color:var(--p1);font-weight:800;cursor:pointer;" onclick="showAuthScreen('screen-signup')">اعمل حساب جديد</span></div>
+  </div>
+
+  <!-- NID LOGIN -->
+  <div class="gate-card" id="screen-nid" style="display:none;">
+    <div class="gate-back" onclick="showAuthScreen('screen-login')">→ رجوع</div>
+    <div class="gate-logo">🪪</div>
+    <div class="gate-title" style="font-size:20px;" id="nid-tag">الدخول بالرقم القومي</div>
+    <div class="gate-field"><label>الرقم القومي (14 رقم)</label><input type="tel" inputmode="numeric" maxlength="14" id="nid-num" placeholder="14 رقم" autocomplete="off" style="letter-spacing:normal;font-weight:400;"/></div>
+    <div id="nid-extra" style="display:none;">
+      <div class="gate-field"><label>الاسم بالكامل</label><input type="text" id="nid-name" autocomplete="name"/></div>
+      <div class="gate-field"><label>رقم الموبايل</label><input type="tel" id="nid-phone" style="letter-spacing:normal;font-weight:400;"/></div>
+    </div>
+    <div class="gate-field"><label id="nid-pass-label">كلمة المرور</label><input type="password" id="nid-pass" style="letter-spacing:normal;font-weight:400;" onkeydown="if(event.key==='Enter')nidSubmit()"/></div>
+    <div class="gate-field" id="nid-pass2-wrap" style="display:none;"><label id="nid-pass2-label">تأكيد كلمة المرور</label><input type="password" id="nid-pass2" style="letter-spacing:normal;font-weight:400;"/></div>
+    <button class="btn-gate" id="nid-btn" onclick="nidSubmit()">دخول</button>
+    <div class="status" id="nid-status"></div>
+    <div class="gate-footer" style="cursor:pointer;color:var(--p1);font-weight:800;" onclick="nidForgot()">نسيت كلمة المرور؟</div>
+    <div class="gate-footer" style="cursor:pointer;color:var(--p1);font-weight:800;" id="nid-toggle" onclick="nidToggleMode()">أول مرة؟ فعّل حسابك</div>
+  </div>
+
+  <!-- BIOMETRIC LOCK -->
+  <div class="gate-card" id="screen-bio" style="display:none;">
+    <div class="gate-logo">☝️</div>
+    <div class="gate-title" style="font-size:20px;" id="bio-name"></div>
+    <div class="gate-sub">افتح حسابك بالبصمة أو الوجه أو قفل الجهاز</div>
+    <button class="btn-gate" onclick="bioUnlock(false)">☝️ فتح بالبصمة</button>
+    <div class="status" id="bio-status"></div>
+    <div class="gate-footer" style="cursor:pointer;color:var(--p1);font-weight:800;" onclick="bioUsePassword()">استخدم كلمة المرور بدلًا من ذلك</div>
   </div>
 
   <!-- ACCOUNT LOCKED / PENDING -->
@@ -795,6 +830,7 @@ body{
     <div class="hdr-sub">بوابة التعليم الجامعي</div>
   </div>
   <span class="hdr-pill" id="hdrPill" onclick="openUpgrade()" style="cursor:pointer;">MIS · 2026</span>
+  <span class="hdr-pill" onclick="accMenu()" style="cursor:pointer;" title="حسابي">⚙️ حسابي</span>
   <div class="hdr-exit" onclick="logout()" title="خروج">🚪</div>
 </div>
 
@@ -932,6 +968,7 @@ body{
       <h3 id="otherUniTitle">خدمات جامعتك</h3>
       <p>لسه بنجهّز صفحات الخدمات التفصيلية لجامعتك على أوائل. لحد ما نخلص، تقدر تدخل بشكل مباشر على البوابة الرسمية لجامعتك من هنا:</p>
       <a class="btn-join" id="otherUniPortalBtn" style="background:linear-gradient(135deg,var(--p1),var(--p2));box-shadow:0 4px 16px rgba(184,83,46,.3);" href="#" onclick="return true;">🔗 بوابة الجامعة الرسمية</a>
+      <button class="btn-join" id="interestBtn" onclick="registerInterest()" style="margin-top:10px;background:var(--p3);border:0;cursor:pointer">🔔 أبلغني أول ما خدمات جامعتي تتوفر</button>
     </div>
   </div>
 
@@ -1422,7 +1459,7 @@ function genCode(){ return String(Math.floor(100000 + Math.random()*900000)); }
 
 /* ─── إظهار شاشة من شاشات الدخول ─── */
 function showAuthScreen(id){
-  ['screen-landing','screen-signup','screen-verify','screen-choose-uni','screen-plans','screen-payment','screen-login','screen-pending']
+  ['screen-landing','screen-signup','screen-verify','screen-choose-uni','screen-plans','screen-payment','screen-login','screen-pending','screen-nid','screen-bio']
     .forEach(s=>{ const el=document.getElementById(s); if(el) el.style.display = (s===id) ? 'block' : 'none'; });
   document.getElementById('join-screen').style.display='none';
   document.getElementById('app').style.display='none';
@@ -1584,7 +1621,7 @@ async function finalizePaidPlan(){
   try{
     if(currentUid){
       await db.collection(USERS_COL).doc(currentUid).update({
-        awaelPlan: selectedPlanKey, awaelStatus:'pending_payment',
+        awaelPlan: selectedPlanKey, awaelStatus:'pending_payment', ...payExtra(),
         awaelPlanRequestedAt: firebase.firestore.FieldValue.serverTimestamp()
       });
     }
@@ -1749,12 +1786,16 @@ function enterApp(d){
     document.getElementById('otherUniPortalBtn').setAttribute('onclick', "go('"+u.portal+"');return false;");
   }
   goHome();
+  maybeOfferBio();
+  subReminder(d);
 }
 
 /* ─── استمرارية الجلسة عبر Firebase (بدل sessionStorage القديم) ─── */
 auth.onAuthStateChanged(async (user)=>{
   if(manualFlow) return;
   if(user){
+    const _b = bioGet();
+    if(_b && _b.uid === user.uid && !window.__bioPassed){ window.__bioPassed = true; currentUid = user.uid; showBioScreen(_b); return; }
     currentUid = user.uid;
     try{
       const doc = await db.collection(USERS_COL).doc(user.uid).get();
@@ -1762,6 +1803,224 @@ auth.onAuthStateChanged(async (user)=>{
     }catch(e){ console.warn(e); }
   }
 });
+
+
+/* ═══════════════ الدخول بالبصمة (WebAuthn) — بيفتح الجلسة المحفوظة على الجهاز ═══════════════ */
+const b64u={enc:b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),dec:x=>Uint8Array.from(atob(x.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))};
+function bioGet(){try{return JSON.parse(localStorage.getItem('awl_bio')||'null');}catch(e){return null;}}
+async function bioAvailable(){try{return !!(window.PublicKeyCredential&&PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());}catch(e){return false;}}
+async function bioEnable(){
+  if(!currentUid||!(await bioAvailable())){alert('جهازك أو متصفحك مش بيدعم الدخول بالبصمة (محتاج https وقفل شاشة/بصمة مفعّل).');return;}
+  try{
+    const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'أوائل'},
+      user:{id:new TextEncoder().encode(currentUid).slice(0,64),name:pendingUser.email||currentUid,displayName:pendingUser.name||'مستخدم'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],
+      authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000,attestation:'none'}});
+    localStorage.setItem('awl_bio',JSON.stringify({uid:currentUid,credId:b64u.enc(cred.rawId),name:pendingUser.name||''}));
+    alert('تم تفعيل الدخول بالبصمة على الجهاز ده ✓');
+  }catch(e){alert('ماتفعّلتش البصمة ('+(e.name||e.message)+')');}
+}
+function showBioScreen(b){document.getElementById('bio-name').textContent=b.name||'أهلًا بيك';showAuthScreen('screen-bio');setTimeout(()=>bioUnlock(true),400);}
+let bioBusy=false;
+async function bioUnlock(auto){
+  const b=bioGet(),user=auth.currentUser;if(bioBusy||!b||!user)return;bioBusy=true;
+  setMsg('bio-status','ضع بصمتك للتحقق...','pending');
+  try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:b64u.dec(b.credId),transports:['internal']}],userVerification:'required',timeout:60000}});}
+  catch(e){bioBusy=false;setMsg('bio-status',auto?'':'ماتمش التحقق بالبصمة — جرّب تاني أو استخدم كلمة المرور.',auto?'':'err');return;}
+  try{
+    currentUid=user.uid;const doc=await db.collection(USERS_COL).doc(currentUid).get();
+    if(!doc.exists)throw new Error('الحساب مش موجود.');
+    setMsg('bio-status','','');routeUser(doc.data());
+  }catch(e){setMsg('bio-status','حصل خطأ: '+e.message,'err');}finally{bioBusy=false;}
+}
+async function bioUsePassword(){try{localStorage.removeItem('awl_bio');}catch(e){} try{await auth.signOut();}catch(e){} currentUid=null;showAuthScreen('screen-login');}
+async function maybeOfferBio(){
+  try{
+    const b=bioGet();if((b&&b.uid===currentUid)||localStorage.getItem('awl_bio_no_'+currentUid)||document.getElementById('bio-offer')||!(await bioAvailable()))return;
+    const d=document.createElement('div');d.id='bio-offer';d.className='bio-offer';
+    d.innerHTML='<b>🔐 الدخول بالبصمة</b><div>ادخل المرة الجاية بلمسة واحدة بدل كلمة المرور.</div><button id="bio-y">تفعيل</button><button class="no" id="bio-n">لاحقًا</button>';
+    document.body.appendChild(d);
+    document.getElementById('bio-y').onclick=async()=>{d.remove();await bioEnable();};
+    document.getElementById('bio-n').onclick=()=>{d.remove();try{localStorage.setItem('awl_bio_no_'+currentUid,'1');}catch(e){}};
+  }catch(e){}
+}
+
+/* ═══════════════ الدخول بالرقم القومي (نفس نظام نُدرس معًا: idGrants + SHA-256، الرقم نفسه ما بيتخزّنش) ═══════════════ */
+function normNid(s){return String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/\D/g,'');}
+async function nidHash(n){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('nudrus-nid-v1:'+n));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,40);}
+function nidEmail(h,v){return h+((v||1)>1?'-'+v:'')+'@nid.nudrus.app';}
+let nidMode='login',nidTemp=false;
+function nidLockLeft(){try{const o=JSON.parse(localStorage.getItem('awl_nidlock')||'{}');return(o.until&&o.until>Date.now())?Math.ceil((o.until-Date.now())/60000):0;}catch(e){return 0;}}
+function nidFailLocal(){try{const o=JSON.parse(localStorage.getItem('awl_nidlock')||'{}'),t=Date.now(),n=(o.t&&t-o.t<600000?(o.n||0):0)+1;localStorage.setItem('awl_nidlock',JSON.stringify(n>=5?{until:t+300000,n:0,t}:{n,t}));}catch(e){}}
+function showNidScreen(){nidMode='login';nidTemp=false;nidApplyMode();showAuthScreen('screen-nid');}
+function nidApplyMode(){
+  const a=nidMode==='activate',$=id=>document.getElementById(id);
+  $('nid-extra').style.display=a?'block':'none';$('nid-pass2-wrap').style.display=a?'block':'none';
+  $('nid-pass-label').textContent=a&&nidTemp?'كلمة المرور المبدئية (من الإدارة)':'كلمة المرور';
+  $('nid-pass2-label').textContent=nidTemp?'كلمة المرور الجديدة (6 أحرف على الأقل)':'تأكيد كلمة المرور';
+  $('nid-tag').textContent=a?'تفعيل حسابك بالرقم القومي':'الدخول بالرقم القومي';
+  $('nid-btn').textContent=a?'تفعيل الحساب والدخول':'دخول';
+  $('nid-toggle').textContent=a?'عندي حساب مفعّل — دخول':'أول مرة؟ فعّل حسابك';
+  setMsg('nid-status','','');
+}
+function nidToggleMode(){nidMode=nidMode==='login'?'activate':'login';nidApplyMode();}
+async function nidSubmit(){
+  const btn=document.getElementById('nid-btn'),err=m=>setMsg('nid-status',m,'err'),v=id=>document.getElementById(id).value;
+  const left=nidLockLeft();if(left){err('محاولات غلط كتير — جرّب بعد '+left+' دقيقة.');return;}
+  const nid=normNid(v('nid-num')),pass=v('nid-pass');
+  if(nid.length!==14){err('الرقم القومي لازم يكون 14 رقم.');return;}
+  if(!pass){err('اكتب كلمة المرور.');return;}
+  btn.disabled=true;manualFlow=true;setMsg('nid-status','جاري التحقق...','pending');
+  let hash='';
+  try{
+    hash=await nidHash(nid);const g=await db.collection('idGrants').doc(hash).get();
+    if(!g.exists){err('الرقم ده مش مسجّل عندنا — تواصل مع الإدارة.');return;}
+    const grant=g.data(),synth=nidEmail(hash,grant.ver||1);nidTemp=!!grant.hasTemp;
+    if(nidMode==='login'){
+      if(!grant.claimed){nidMode='activate';nidApplyMode();setMsg('nid-status','الرقم ده لسه ماتفعّلش — اكمل بياناتك وفعّله.','ok');return;}
+      let cred=null,le=null;
+      for(const em of [grant.altEmail,synth].filter(Boolean)){try{cred=await auth.signInWithEmailAndPassword(em,pass);break;}catch(e){le=e;}}
+      if(!cred)throw le;
+      currentUid=cred.user.uid;
+      const doc=await db.collection(USERS_COL).doc(currentUid).get();
+      if(!doc.exists)throw new Error('الحساب ده مش موجود في قاعدة بياناتنا.');
+      if(doc.data().status==='revoked'){await auth.signOut();throw new Error('الحساب ده اتوقف — تواصل مع الإدارة.');}
+      localStorage.removeItem('awl_nidlock');setMsg('nid-status','','');routeUser(doc.data());nidCheckFails(hash);return;
+    }
+    if(grant.claimed){nidMode='login';nidApplyMode();setMsg('nid-status','الرقم ده مفعّل بالفعل — ادخل بكلمة المرور.','ok');return;}
+    const name=v('nid-name').trim(),phone=v('nid-phone').trim(),p2=v('nid-pass2');
+    if(!name||!phone){err('اكتب الاسم ورقم الموبايل.');return;}
+    if(nidTemp){if(p2.length<6){err('كلمة المرور الجديدة لازم تكون 6 أحرف على الأقل.');return;}}
+    else{if(pass.length<6){err('كلمة المرور لازم تكون 6 أحرف على الأقل.');return;}if(pass!==p2){err('كلمتا المرور مش متطابقتين.');return;}}
+    let cred;
+    if(nidTemp){cred=await auth.signInWithEmailAndPassword(synth,pass);await cred.user.updatePassword(p2);}
+    else{cred=await auth.createUserWithEmailAndPassword(synth,pass);}
+    const uid=cred.user.uid,uni=UNIVERSITIES.find(u=>u.code===grant.uniCode)||UNIVERSITIES[0];
+    const udoc={name,email:'',phone,role:'student',accountType:grant.accountType||'student_teacher',plan:'granted',status:'active',nidHash:hash,nidLast4:nid.slice(-4),emailVerified:true,
+      awaelStatus:'active',awaelPlan:'granted',awaelEmailVerified:true,awaelUniCode:uni.code,awaelUniName:uni.name,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp(),awaelCreatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+    await db.collection(USERS_COL).doc(uid).set(udoc,{merge:true});
+    await db.collection('idGrants').doc(hash).update({claimed:true,claimedUid:uid,claimedName:name,claimedMs:Date.now()});
+    currentUid=uid;pendingUser={name,email:'',phone,uniCode:uni.code,uniName:uni.name};
+    routeUser(udoc);
+  }catch(e){
+    const bad=['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(e.code);
+    if(bad){nidFailLocal();if(hash)nidFailRemote(hash);}
+    err(bad?'الرقم القومي أو كلمة المرور غلط.':friendlyAuthError(e));
+  }finally{btn.disabled=false;manualFlow=false;}
+}
+
+/* ─── محاولات الدخول الفاشلة + استعادة كلمة المرور + ربط إيميل + قائمة حسابي ─── */
+async function nidFailRemote(h){try{const r=db.collection('nidFails').doc(h),d=await r.get();if(d.exists)await r.update({count:(d.data().count||0)+1,lastMs:Date.now()});else await r.set({count:1,lastMs:Date.now()});}catch(e){}}
+async function nidCheckFails(h){
+  try{if(!h)return;const r=db.collection('nidFails').doc(h),f=await r.get();
+    if(f.exists&&f.data().count>0){setTimeout(()=>alert('⚠️ كان فيه '+f.data().count+' محاولة دخول فاشلة على حسابك. لو مش إنت، غيّر كلمة المرور وبلّغ الإدارة.'),2500);await r.delete();}
+  }catch(e){}
+}
+async function nidForgot(){
+  const nid=normNid(document.getElementById('nid-num').value);
+  if(nid.length!==14){setMsg('nid-status','اكتب الرقم القومي الأول.','err');return;}
+  try{
+    const g=await db.collection('idGrants').doc(await nidHash(nid)).get();
+    if(!g.exists||!g.data().altEmail){setMsg('nid-status','الحساب ده مفيهوش إيميل استعادة متربط. اطلب من الإدارة "إعادة فتح" الحساب بكلمة مرور جديدة.','err');return;}
+    await auth.sendPasswordResetEmail(g.data().altEmail);setMsg('nid-status','✓ اتبعت رابط تغيير كلمة المرور على الإيميل المتربط بالحساب.','ok');
+  }catch(e){setMsg('nid-status',friendlyAuthError(e),'err');}
+}
+async function nidLinkEmail(){
+  const u=auth.currentUser,h=currentUserDoc&&currentUserDoc.nidHash;if(!u||!h)return;
+  const em=(prompt('اكتب إيميلك الحقيقي لاستعادة كلمة المرور (هيوصلك رابط تأكيد):')||'').trim().toLowerCase();
+  if(!em)return;
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){alert('الإيميل مش صحيح.');return;}
+  try{
+    await db.collection('idGrants').doc(h).update({altEmail:em});await u.verifyBeforeUpdateEmail(em);
+    alert('اتبعت رابط تأكيد على '+em+' — بعد ما تضغط عليه هتقدر تستعيد كلمة المرور بنفسك.');
+  }catch(e){
+    try{await db.collection('idGrants').doc(h).update({altEmail:firebase.firestore.FieldValue.delete()});}catch(_){}
+    alert(e.code==='auth/requires-recent-login'?'سجّل خروج وادخل تاني وبعدين جرّب.':'تعذّر الربط: '+friendlyAuthError(e));
+  }
+}
+function accMenu(){
+  const old=document.getElementById('acc-menu');if(old){old.remove();return;}
+  const b=bioGet(),on=!!(b&&b.uid===currentUid),d=document.createElement('div');d.id='acc-menu';d.className='bio-offer';
+  d.innerHTML='<b>⚙️ حسابي</b><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px">'
+   +'<button id="am-bio">'+(on?'🔓 إيقاف الدخول بالبصمة':'☝️ تفعيل الدخول بالبصمة')+'</button>'
+   +(currentUserDoc&&currentUserDoc.nidHash?'<button id="am-mail">✉️ ربط إيميل لاستعادة كلمة المرور</button>':'')
+   +(on?'<button id="am-lock">🔒 قفل التطبيق الآن</button>':'')
+   +'<button class="no" id="am-x">إغلاق</button></div>';
+  document.body.appendChild(d);
+  document.getElementById('am-x').onclick=()=>d.remove();
+  document.getElementById('am-bio').onclick=async()=>{d.remove();if(on){localStorage.removeItem('awl_bio');alert('اتلغى الدخول بالبصمة.');}else await bioEnable();};
+  const m=document.getElementById('am-mail');if(m)m.onclick=()=>{d.remove();nidLinkEmail();};
+  const l=document.getElementById('am-lock');if(l)l.onclick=()=>location.reload();
+}
+
+/* ═══════════════ الدفع: نفس دوال نُدرس معًا (feeBase / feeCoupon / feeNet / applyCoupon — كولكشن coupons المشترك) + مرجع وإيصال ═══════════════ */
+let payRef='',payReceipt='',feeBase=0,feeCoupon=null;
+const _selectPlan=selectPlan;
+selectPlan=function(k){_selectPlan(k);feeBase=PLANS[k].price;feeCoupon=null;payReceipt='';
+  payRef='AW-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  document.getElementById('pay-coupon').value='';document.getElementById('pay-receipt').value='';renderFeePayment();};
+function feeNet(){
+  if(!feeCoupon) return feeBase;
+  const off = feeCoupon.type === 'percent' ? feeBase * feeCoupon.value / 100 : feeCoupon.value;
+  return Math.max(0, Math.round(feeBase - off));
+}
+function renderFeePayment(){
+  const pl=PLANS[selectedPlanKey];if(!pl)return;const net=feeNet();
+  document.getElementById('pay-plan-sub').textContent='المدة: '+pl.duration+' — المبلغ: '+net+' جنيه'+(feeCoupon?' (بعد كوبون '+feeCoupon.code+' — بدل '+feeBase+')':'');
+  document.getElementById('pay-ref-line').textContent='الكود المرجعي لطلبك: '+payRef+' — اكتبه في رسالة التحويل.';
+  const nm=pendingUser.name||(currentUserDoc&&currentUserDoc.name)||'';
+  document.getElementById('wa-confirm-link').href='https://wa.me/'+WHATSAPP_NUMBER+'?text='+encodeURIComponent('مرحبًا، أنا '+nm+' حوّلت مبلغ '+net+' جنيه لخطة "'+pl.name+'" على أوائل'+(feeCoupon?' (كوبون '+feeCoupon.code+')':'')+'. الكود المرجعي: '+payRef+' — برجاء مراجعة التحويل.');
+}
+async function applyCoupon(){
+  const code=document.getElementById('pay-coupon').value.trim().toUpperCase();
+  if(!code){feeCoupon=null;renderFeePayment();setMsg('payment-status','','');return;}
+  setMsg('payment-status','جاري التحقق...','pending');
+  try{
+    const d=await db.collection('coupons').doc(code).get(),c=d.exists?d.data():null;
+    const bad=!c||c.active===false||(c.expiresMs&&Date.now()>c.expiresMs)||(c.maxUses&&(c.used||0)>=c.maxUses)||((c.appliesTo||[]).length&&!c.appliesTo.includes('awael'));
+    if(bad){feeCoupon=null;renderFeePayment();setMsg('payment-status','الكوبون غير صالح أو منتهي.','err');return;}
+    feeCoupon={code,type:c.type,value:Number(c.value)||0};
+    renderFeePayment();setMsg('payment-status','✓ اتطبّق الخصم — المبلغ الجديد '+feeNet()+' جنيه.','ok');
+  }catch(err){setMsg('payment-status','تعذّر التحقق من الكوبون.','err');}
+}
+function payPickReceipt(inp){
+  const f=inp.files[0];if(!f){payReceipt='';return;}
+  const img=new Image(),r=new FileReader();
+  r.onload=()=>{img.onload=()=>{const k=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*k;c.height=img.height*k;
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);payReceipt=c.toDataURL('image/jpeg',.6);setMsg('payment-status','✓ اتحمّل الإيصال','ok');};img.src=r.result;};
+  r.readAsDataURL(f);
+}
+function payExtra(){const o={awaelPayRef:payRef,awaelPayAmount:feeNet()};if(feeCoupon){o.awaelCoupon=feeCoupon.code;o.awaelFeeBase=feeBase;}if(payReceipt)o.awaelReceipt=payReceipt;return o;}
+
+/* ═══════════════ تجربة المستخدم: PWA + تنبيهات + اهتمام بالجامعة ═══════════════ */
+(function(){
+  try{
+    const svg="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192"><rect width="192" height="192" rx="40" fill="#B8532E"/><text x="96" y="130" font-size="110" text-anchor="middle" fill="#fff">✦</text></svg>');
+    const m={name:'أوائل',short_name:'أوائل',lang:'ar',dir:'rtl',display:'standalone',start_url:location.pathname,background_color:'#FBF8F2',theme_color:'#B8532E',icons:[{src:svg,sizes:'any',type:'image/svg+xml',purpose:'any'}]};
+    const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));document.head.appendChild(l);
+    [['theme-color','#B8532E'],['mobile-web-app-capable','yes'],['apple-mobile-web-app-capable','yes'],['apple-mobile-web-app-title','أوائل']].forEach(([n,c])=>{const e=document.createElement('meta');e.name=n;e.content=c;document.head.appendChild(e);});
+    const ai=document.createElement('link');ai.rel='apple-touch-icon';ai.href=svg;document.head.appendChild(ai);
+  }catch(e){}
+})();
+function awlToast(t,ms){const d=document.createElement('div');d.className='bio-offer';d.textContent=t;d.onclick=()=>d.remove();document.body.appendChild(d);setTimeout(()=>d.remove(),ms||8000);}
+function subReminder(d){
+  try{
+    const k='awl_seen_'+currentUid;
+    if(localStorage.getItem(k)!=='active'){localStorage.setItem(k,'active');if(d.awaelPayRef)awlToast('🎉 اتفعّل اشتراكك — استمتع بكل الخدمات!');}
+    const pl=PLANS[d.awaelPlan];if(!pl||!pl.durationDays||!d.awaelActivatedMs)return;
+    const left=Math.ceil((d.awaelActivatedMs+pl.durationDays*864e5-Date.now())/864e5);
+    if(left<0)awlToast('⌛ اشتراكك انتهى — دوس على الشارة فوق لتجديده.',12000);
+    else if(left<=3)awlToast('⏰ اشتراكك هينتهي بعد '+left+' يوم — جدّده من الشارة فوق.',12000);
+  }catch(e){}
+}
+setInterval(()=>{const p=document.getElementById('screen-pending');if(p&&p.style.display==='block'&&currentUid)refreshMyStatus();},30000);
+async function registerInterest(){
+  const d=currentUserDoc||{};
+  try{await db.collection('awaelInterest').doc(currentUid).set({uniCode:d.awaelUniCode||'',uniName:d.awaelUniName||'',name:d.name||'',ms:Date.now()});
+    const b=document.getElementById('interestBtn');b.textContent='✓ تمام — هنبلغك';b.disabled=true;}
+  catch(e){awlToast('تعذّر التسجيل: '+(e.message||e.code));}
+}
 
 window.onload = ()=>{ renderUniSelect(); };
 

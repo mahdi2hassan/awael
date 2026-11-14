@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أوائل — لوحة التحكم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#1B2A41; --ink-soft:#3A4B66; --paper:#FBF8F2; --paper-dim:#F1ECE1; --brick:#B8532E; --brick-dark:#94411F; --sage:#5C8368; --gold:#C79A2B; --line:#E4DDD0; --white:#FFFFFF; }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:'Almarai',sans-serif; background:var(--paper); color:var(--ink);}
+  h1,h2{font-family:'Cairo',sans-serif;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+
+  #gate, #localgate{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  #gate{display:none;}
+  .gate-box{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:30px; width:100%; max-width:380px; text-align:center;}
+  .gate-box h1{font-size:20px; margin-bottom:6px;}
+  .gate-box p{font-size:12.5px; color:var(--ink-soft); margin-bottom:18px;}
+  .gate-box input{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:4px; margin-bottom:12px; font-family:inherit;}
+  .gate-box button{width:100%; background:var(--brick); color:#fff; padding:10px; border-radius:4px; font-weight:800;}
+  .gate-err{font-size:12px; color:var(--brick); margin-top:10px; min-height:14px;}
+  .lg-tag{font-size:11.5px; color:var(--ink-soft); background:var(--paper-dim); border-radius:5px; padding:8px 10px; margin-bottom:14px; line-height:1.7; text-align:right;}
+  .lg-switch{background:none; color:var(--brick); font-size:12px; text-decoration:underline; margin-top:10px;}
+  .pw-row{position:relative;}
+  .pw-row .pw-toggle{position:absolute; left:8px; top:9px; background:none; color:var(--ink-soft); padding:4px;}
+  .auth-logo{width:48px; height:48px; border-radius:50%; background:var(--paper-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:var(--brick);}
+
+  #dash{display:none; padding:26px 20px; max-width:920px; margin:0 auto;}
+  .head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:20px;}
+  .head h1{font-size:21px;}
+  .head p{font-size:12.5px; color:var(--ink-soft); margin-top:4px;}
+  .head-actions{display:flex; gap:8px;}
+  .icon-btn{background:var(--paper-dim); color:var(--ink-soft); padding:8px 12px; border-radius:5px; font-size:12.5px; font-weight:700; display:inline-flex; align-items:center; gap:6px;}
+  .icon-btn:hover{background:var(--line); color:var(--ink);}
+
+  .warn{background:#FBEFE9; border:1px solid var(--brick); color:var(--brick-dark); border-radius:6px; padding:14px 16px; font-size:12.5px; line-height:1.8; margin-bottom:20px;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
+  .tab{background:var(--white); border:1px solid var(--line); padding:9px 16px; border-radius:5px; font-weight:700; font-size:13px; opacity:.65; display:inline-flex; align-items:center; gap:7px;}
+  .tab.active{opacity:1; border-color:var(--brick); color:var(--brick);}
+  .panel{display:none; animation:panelIn .2s ease;}
+  .panel.active{display:block;}
+  @keyframes panelIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
+
+  .stats-row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;}
+  .stat-box{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .stat-box .n{font-family:'Cairo',sans-serif; font-weight:900; font-size:22px; color:var(--brick);}
+  .stat-box .l{font-size:11px; color:var(--ink-soft); margin-top:2px;}
+
+  .filter-row{display:flex; gap:7px; margin-bottom:16px; flex-wrap:wrap;}
+  .fbtn{background:var(--white); border:1px solid var(--line); padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; color:var(--ink-soft);}
+  .fbtn.active{background:var(--brick); border-color:var(--brick); color:#fff;}
+
+  .card{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:20px; margin-bottom:18px; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .field{margin-bottom:12px;}
+  .field label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:5px;}
+  .field input{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:4px; font-family:inherit; font-size:13.5px; background:var(--paper);}
+  .btn{background:var(--brick); color:#fff; padding:9px 18px; border-radius:4px; font-weight:800; font-size:13px; display:inline-flex; align-items:center; gap:6px;}
+  .btn:hover{background:var(--brick-dark);}
+  .status{font-size:12px; margin-top:10px; min-height:14px;}
+  .status.ok{color:var(--sage); font-weight:700;} .status.err{color:var(--brick); font-weight:700;}
+
+  .urow{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .urow .u-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:6px;}
+  .urow .u-name{font-weight:800; font-size:14.5px;}
+  .urow .u-meta{font-size:11.5px; color:var(--ink-soft); line-height:1.9; margin-top:3px;}
+  .urow .u-meta b{color:var(--ink);}
+  .urow .u-controls{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px; padding-top:10px; border-top:1px dashed var(--line);}
+  .urow select{padding:6px 8px; border:1px solid var(--line); border-radius:4px; font-family:inherit; font-size:12.5px;}
+  .urow .save-btn{background:var(--ink); color:#fff; padding:6px 14px; border-radius:4px; font-size:12px; font-weight:700;}
+  .urow .approve-btn{background:var(--sage); color:#fff; padding:7px 16px; border-radius:4px; font-size:12.5px; font-weight:800;}
+  .urow .reject-btn{background:var(--paper-dim); color:var(--brick); padding:7px 16px; border-radius:4px; font-size:12.5px; font-weight:800;}
+  .urow .verify-btn{background:var(--paper-dim); color:var(--ink-soft); padding:6px 12px; border-radius:4px; font-size:11.5px; font-weight:700;}
+  .badge{font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:10px; white-space:nowrap;}
+  .badge.active{background:#E3EFE6; color:#3d6b47;}
+  .badge.pending_payment{background:#FBEFE0; color:#94411F;}
+  .badge.pending_verification{background:#F1ECE1; color:#8a7550;}
+  .badge.rejected{background:#F1ECE1; color:#8a8478;}
+  .code-pill{background:var(--paper-dim); border-radius:4px; padding:2px 8px; font-family:monospace; font-weight:700; color:var(--ink);}
+  .empty-state{background:var(--white); border:1px dashed var(--line); border-radius:6px; padding:30px; text-align:center; color:var(--ink-soft); font-size:13px;}
+
+  .icon{width:1em; height:1em; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; vertical-align:-0.15em; flex-shrink:0;}
+  .tab .icon, .icon-btn .icon{width:15px; height:15px;}
+
+  #toast-stack{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:999; width:min(92vw,380px);}
+  .toast{background:var(--ink); color:var(--paper); border-radius:7px; padding:11px 14px; font-size:13px; display:flex; align-items:center; gap:10px; box-shadow:0 12px 28px rgba(27,42,65,.28); animation:toastIn .2s ease;}
+  .toast.err{background:var(--brick-dark);}
+  .toast .toast-msg{flex:1; line-height:1.5;}
+  @keyframes toastIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  @media (max-width:640px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
+</style>
+</head>
+<body>
+<svg style="display:none" aria-hidden="true">
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+<symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+</svg>
+
+<div id="toast-stack"></div>
+
+<!-- ========== LOCAL DEVICE LOCK ========== -->
+<div id="localgate">
+  <div class="gate-box">
+    <div class="auth-logo"><svg class="icon" style="width:22px;height:22px;"><use href="#i-lock"></use></svg></div>
+    <h1 id="lg-title">قفل الجهاز</h1>
+    <p id="lg-sub">اليوزر والباسورد بتوعك متخزنين على الجهاز ده بس</p>
+    <div class="lg-tag" id="lg-setup-tag">أول مرة بتفتح لوحة أوائل من الجهاز ده — اختار يوزر وباسورد محليين لقفل الشاشة دي (منفصلين عن حساب الأدمن على Firebase اللي جاي بعد كده).</div>
+    <input type="text" id="lg-user" placeholder="اليوزر" autocomplete="off">
+    <div class="pw-row">
+      <input type="password" id="lg-pass" placeholder="الباسورد" autocomplete="off">
+      <button type="button" class="pw-toggle" onclick="toggleLgPw()"><svg class="icon" id="lg-pw-icon"><use href="#i-eye"></use></svg></button>
+    </div>
+    <input type="password" id="lg-pass-confirm" placeholder="تأكيد الباسورد" autocomplete="off" style="display:none">
+    <button onclick="submitLocalGate()" id="lg-submit-btn">حفظ وتأمين الجهاز</button>
+    <div class="gate-err" id="lg-err"></div>
+    <button class="lg-switch" id="lg-reset-btn" onclick="resetLocalGate()" style="display:none">نسيت الباسورد؟ إعادة ضبط قفل الجهاز</button>
+  </div>
+</div>
+
+<!-- ========== FIREBASE ADMIN LOGIN ========== -->
+<div id="gate">
+  <div class="gate-box">
+    <h1>لوحة تحكم أوائل</h1>
+    <p>دخول الأدمن (حساب Firebase حقيقي)</p>
+    <input type="email" id="gate-email" placeholder="إيميل الأدمن" autocomplete="email">
+    <input type="password" id="gate-pass" placeholder="كلمة المرور" autocomplete="current-password" onkeydown="if(event.key==='Enter')checkGate()">
+    <button onclick="checkGate()">دخول</button>
+    <div class="gate-err" id="gate-err"></div>
+  </div>
+</div>
+
+<!-- ========== DASHBOARD ========== -->
+<div id="dash">
+  <div class="head">
+    <div><h1>لوحة تحكم أوائل</h1>
+    <p>اعرف مين عمل حساب ووافق على الاشتراكات يدويًا</p></div>
+    <div class="head-actions">
+      <button class="icon-btn" onclick="lockDeviceNow()"><svg class="icon"><use href="#i-lock"></use></svg> قفل الجهاز</button>
+      <button class="icon-btn" onclick="adminLogout()"><svg class="icon"><use href="#i-logout"></use></svg> خروج</button>
+    </div>
+  </div>
+
+  <div class="warn"><svg class="icon" style="margin-left:6px;"><use href="#i-alert"></use></svg>
+    الدخول هنا بنفس حسابات الأدمن بتاعة نُدرس معًا بالظبط (كولكشن <b>admins</b> المشترك) — أي حساب عنده صلاحية أدمن هناك هيفتح لوحة أوائل هنا كمان من غير ما تضيف حاجة جديدة. لو حساب جديد مش مسجل أدمن في أي المنصتين، سجّل دخول بيه هنا مرة (هيدّيك رسالة "معندوش صلاحية أدمن")، وبعدين ضيف الـ uid بتاعه يدويًا في كولكشن admins من Firebase Console. وبنفس المنطق، حسابات الطلاب كمان بقت في نفس كولكشن <b>users</b> بتاع نُدرس معًا — أي حساب اتعمل هناك يقدر يدخل على أوائل بنفس الإيميل والباسورد من غير حساب جديد. قفل الجهاز طبقة حماية إضافية بسيطة على الجهاز ده بس، مش بديل عن أمان Firebase.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('users', this)"><svg class="icon"><use href="#i-users"></use></svg> المستخدمين</button>
+    <button class="tab" onclick="switchTab('ins', this)">📊 إحصائيات وسجل</button>
+    <button class="tab" onclick="switchTab('nid', this)">🪪 الأرقام القومية</button>
+    <button class="tab" onclick="switchTab('settings', this)"><svg class="icon"><use href="#i-settings"></use></svg> الإعدادات</button>
+  </div>
+
+  <div class="panel active" id="panel-users">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="approve-btn" onclick="bulkApprove()">✓ تفعيل المحدد</button>
+      <button class="save-btn" onclick="toggleAllBulk()">تحديد الكل</button>
+      <button class="save-btn" onclick="exportUsersCsv()">📥 تصدير CSV</button>
+    </div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="filter-row" id="filter-row"></div>
+    <div class="status" id="users-status" style="margin-bottom:10px;"></div>
+    <div id="users-list"></div>
+  </div>
+
+  <div class="panel" id="panel-ins">
+    <div class="card"><h3 style="margin-bottom:8px">📊 إحصائيات</h3><div id="ins-stats">جاري التحميل...</div></div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:6px">🎟️ كوبونات الخصم (نفس كولكشن نُدرس معًا)</h3>
+      <p style="font-size:12.5px;margin-bottom:10px">بيكتبها المستخدم في شاشة الدفع. لو كوبون بنفس الكود موجود هيتعدّل، وعداد الاستخدام بيزيد عند التفعيل. من غير تحديد «يسري على» الكوبون بيشتغل على أوائل ونُدرس معًا.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px">
+        <div class="field"><label>الكود</label><input type="text" id="cp-code" placeholder="WELCOME20"></div>
+        <div class="field"><label>النوع</label><select id="cp-type"><option value="percent">نسبة %</option><option value="amount">مبلغ ثابت (جنيه)</option></select></div>
+        <div class="field"><label>القيمة</label><input type="number" id="cp-value" min="1"></div>
+        <div class="field"><label>أقصى استخدامات (0 = بلا حد)</label><input type="number" id="cp-max" min="0" value="0"></div>
+        <div class="field"><label>ينتهي في (اختياري)</label><input type="date" id="cp-exp"></div>
+      </div>
+      <div style="margin:6px 0 12px;font-size:12.5px;font-weight:700">يسري على: <label><input type="checkbox" class="cp-type" value="awael" style="width:auto"> أوائل فقط</label></div>
+      <button class="btn" onclick="saveCoupon()">حفظ الكوبون</button>
+      <div class="status" id="coupon-adm-status"></div>
+      <div id="coupon-list" style="margin-top:12px"></div></div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:8px">📜 سجل الإجراءات</h3><div id="audit-list"></div></div>
+  </div>
+
+  <div class="panel" id="panel-nid">
+    <div class="card">
+      <h3 style="margin-bottom:6px;">🪪 إضافة حسابات بالرقم القومي (مجانية)</h3>
+      <p style="font-size:12.5px;margin-bottom:12px;">اكتب رقم أو أكتر مفصولين بفاصلة أو سطر جديد. الأرقام بتتخزّن مشفّرة (Hash) + آخر 4 أرقام بس، وبتشتغل في أوائل ونُدرس معًا.</p>
+      <div class="field"><label>الأرقام القومية (14 رقم)</label><textarea id="nid-ids" rows="4" placeholder="29801011234567, 29905051234568"></textarea></div>
+      <div class="field"><label>الجامعة (كود، اختياري — مثال: BUS)</label><input type="text" id="nid-uni" placeholder="BUS"></div>
+      <div class="field"><label>الدفعة / ملاحظة (اختياري)</label><input type="text" id="nid-batch"></div>
+      <div class="field"><label>طريقة التفعيل</label><select id="nid-method"><option value="temp">كلمة مرور مبدئية لكل رقم (موصى بها — بينزل ملف CSV بالأكواد مرة واحدة)</option><option value="open">تفعيل مفتوح: أي حد يعرف الرقم يفعّله</option></select></div>
+      <div class="field"><label>تاريخ انتهاء المنحة (اختياري)</label><input type="date" id="nid-expiry"></div>
+      <button class="btn" onclick="addNidGrants()">إضافة الأرقام</button>
+      <div class="status" id="nid-add-status"></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3 style="margin-bottom:6px;">📋 الأرقام المسجّلة</h3>
+      <div id="nid-counts" style="font-size:12.5px;font-weight:700;margin-bottom:8px;"></div>
+      <input type="text" id="nid-q" oninput="renderNidList()" placeholder="ابحث: آخر 4 أرقام / الاسم / الدفعة / الرقم كامل" style="width:100%;margin-bottom:8px;">
+      <div id="nid-list">جاري التحميل...</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <div class="field"><label>رقم إنستاباي</label><input type="text" id="set-insta" placeholder="01xxxxxxxxx"></div>
+      <div class="field"><label>رقم فودافون كاش</label><input type="text" id="set-cash" placeholder="01xxxxxxxxx"></div>
+      <div class="field"><label>رقم واتساب للتواصل (بالصيغة الدولية بدون +)</label><input type="text" id="set-whatsapp" placeholder="2010xxxxxxx"></div>
+      <button class="btn" onclick="saveContactSettings()"><svg class="icon"><use href="#i-check"></use></svg> حفظ الإعدادات</button>
+      <div class="status" id="settings-status"></div>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-top:10px;line-height:1.8;">
+        ملحوظة: تغيير الأرقام هنا بيتحفظ في قاعدة البيانات للرجوع ليها، لكن الأرقام المعروضة فعليًا لطلاب أوائل وقت الدفع متكتوبة داخل ملف index.html — لو غيّرت الأرقام لازم تحدّثها هناك كمان.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ic(name){ return `<svg class="icon"><use href="#i-${name}"></use></svg>`; }
+
+function toast(msg, opts){
+  opts = opts || {};
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (opts.type === 'err' ? 'err' : 'ok');
+  el.innerHTML = `${ic(opts.type==='err'?'alert':'check')}<span class="toast-msg">${escapeHtml(msg)}</span>`;
+  stack.appendChild(el);
+  setTimeout(()=>el.remove(), opts.duration || 3200);
+}
+
+/* ================= LOCAL DEVICE LOCK ================= */
+const LOCK_KEY = 'awael_admin_local_lock';
+function bufToHex(buf){ return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join(''); }
+async function hashPass(pass, salt){
+  const enc = new TextEncoder();
+  const digest = await crypto.subtle.digest('SHA-256', enc.encode(salt + ':' + pass));
+  return bufToHex(digest);
+}
+function randomSalt(){ return bufToHex(crypto.getRandomValues(new Uint8Array(16)).buffer); }
+function getLocalLock(){ try{ return JSON.parse(localStorage.getItem(LOCK_KEY) || 'null'); }catch(e){ return null; } }
+
+let lgMode = 'setup';
+function initLocalGate(){
+  const lock = getLocalLock();
+  const setupTag = document.getElementById('lg-setup-tag');
+  const confirmInput = document.getElementById('lg-pass-confirm');
+  const resetBtn = document.getElementById('lg-reset-btn');
+  if(lock){
+    lgMode = 'unlock';
+    document.getElementById('lg-title').textContent = 'قفل الجهاز';
+    document.getElementById('lg-sub').textContent = 'ادخل يوزر وباسورد الجهاز عشان تكمل';
+    setupTag.style.display = 'none'; confirmInput.style.display = 'none';
+    document.getElementById('lg-submit-btn').textContent = 'فتح القفل';
+    document.getElementById('lg-user').value = lock.user || '';
+    resetBtn.style.display = 'block';
+  }else{
+    lgMode = 'setup';
+    document.getElementById('lg-title').textContent = 'أول استخدام — أمّن الجهاز';
+    document.getElementById('lg-sub').textContent = 'اختار يوزر وباسورد محليين لقفل الشاشة دي';
+    setupTag.style.display = 'block'; confirmInput.style.display = 'block';
+    document.getElementById('lg-submit-btn').textContent = 'حفظ وتأمين الجهاز';
+    resetBtn.style.display = 'none';
+  }
+}
+function toggleLgPw(){
+  const inp = document.getElementById('lg-pass'); const icon = document.getElementById('lg-pw-icon');
+  if(inp.type === 'password'){ inp.type = 'text'; icon.innerHTML = '<use href="#i-eye-off"></use>'; }
+  else{ inp.type = 'password'; icon.innerHTML = '<use href="#i-eye"></use>'; }
+}
+async function submitLocalGate(){
+  const user = document.getElementById('lg-user').value.trim();
+  const pass = document.getElementById('lg-pass').value;
+  const err = document.getElementById('lg-err'); err.textContent = '';
+  if(!user || !pass){ err.textContent = 'اكتب اليوزر والباسورد.'; return; }
+  if(lgMode === 'setup'){
+    const confirmPass = document.getElementById('lg-pass-confirm').value;
+    if(pass.length < 4){ err.textContent = 'الباسورد لازم يكون 4 حروف/أرقام على الأقل.'; return; }
+    if(pass !== confirmPass){ err.textContent = 'تأكيد الباسورد مش مطابق.'; return; }
+    const salt = randomSalt(); const hash = await hashPass(pass, salt);
+    localStorage.setItem(LOCK_KEY, JSON.stringify({ user, salt, hash }));
+    unlockToGate();
+  }else{
+    const lock = getLocalLock();
+    if(!lock || lock.user !== user){ err.textContent = 'اليوزر غلط.'; return; }
+    const hash = await hashPass(pass, lock.salt);
+    if(hash !== lock.hash){ err.textContent = 'الباسورد غلط.'; return; }
+    unlockToGate();
+  }
+}
+function unlockToGate(){
+  document.getElementById('localgate').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+  document.getElementById('gate-email').focus();
+}
+function lockDeviceNow(){
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('lg-user').value = ''; document.getElementById('lg-pass').value = '';
+  initLocalGate();
+  document.getElementById('localgate').style.display = 'flex';
+}
+function resetLocalGate(){
+  localStorage.removeItem(LOCK_KEY);
+  document.getElementById('lg-user').value = ''; document.getElementById('lg-pass').value = '';
+  document.getElementById('lg-err').textContent = '';
+  initLocalGate();
+  toast('اتمسح قفل الجهاز — اعمل إعداد جديد.');
+}
+initLocalGate();
+
+/* ================= Firebase — نفس نظام الدخول بتاع نُدرس معًا ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyCM4lbv83xStvHDB31CqPTpb40ss9q04so",
+  authDomain: "studytogether-e8108.firebaseapp.com",
+  projectId: "studytogether-e8108",
+  storageBucket: "studytogether-e8108.firebasestorage.app",
+  messagingSenderId: "1019488103298",
+  appId: "1:1019488103298:web:0ff82b789018ff1418fd9b",
+  measurementId: "G-DKCCXL9WTL"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const USERS_COL = 'users'; // نفس كولكشن نُدرس معًا — أي حساب موجود هناك يظهر هنا لو عنده بيانات أوائل
+const ADMINS_COL = 'admins'; // نفس كولكشن الأدمنز بتاع نُدرس معًا — نفس الحسابات تفتح اللوحتين
+
+async function checkGate(){
+  const email = document.getElementById('gate-email').value.trim();
+  const pass = document.getElementById('gate-pass').value;
+  const err = document.getElementById('gate-err'); err.textContent = '';
+  if(!email || !pass){ err.textContent = 'اكتب الإيميل وكلمة المرور.'; return; }
+  try{
+    const cred = await auth.signInWithEmailAndPassword(email, pass);
+    const adminDoc = await db.collection(ADMINS_COL).doc(cred.user.uid).get();
+    if(!adminDoc.exists){
+      err.textContent = 'الحساب ده معندوش صلاحية أدمن.';
+      await auth.signOut();
+      return;
+    }
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    loadUsers();
+  }catch(e){
+    err.textContent = 'دخول فشل: ' + (e.message || e.code);
+  }
+}
+function adminLogout(){
+  auth.signOut();
+  document.getElementById('dash').style.display = 'none';
+  document.getElementById('gate').style.display = 'flex';
+}
+function switchTab(name, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name === 'settings') loadContactSettings();
+  if(name === 'nid') loadNidGrants();
+  if(name === 'ins') loadInsights();
+}
+
+/* ================= المستخدمين ================= */
+const PLAN_LABELS = { sub1:'الاشتراك الأول', sub2:'الاشتراك الثاني', sub3:'الاشتراك الثالث', pro:'البرو (مدى الحياة)' };
+const STATUS_LABELS = { active:'نشط ✓', pending_payment:'قيد المراجعة', pending_verification:'بانتظار تأكيد الإيميل', rejected:'مرفوض' };
+let allUsers = [];
+let currentFilter = 'pending_payment';
+
+async function loadUsers(){
+  const el = document.getElementById('users-list');
+  el.innerHTML = 'جاري التحميل...';
+  try{
+    const snap = await db.collection(USERS_COL).orderBy('awaelCreatedAt','desc').limit(300).get();
+    allUsers = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderStats();
+    renderFilters();
+    renderUsersList();
+  }catch(err){
+    el.innerHTML = '<div class="empty-state">تعذّر تحميل المستخدمين: '+escapeHtml(err.message)+'</div>';
+  }
+}
+function renderStats(){
+  const counts = { all: allUsers.length, pending_payment:0, pending_verification:0, active:0, rejected:0 };
+  allUsers.forEach(u=>{ const s = u.awaelStatus || 'pending_verification'; if(counts[s]!==undefined) counts[s]++; });
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-box"><div class="n">${counts.all}</div><div class="l">كل الحسابات</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--gold);">${counts.pending_payment}</div><div class="l">محتاجة موافقة</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--sage);">${counts.active}</div><div class="l">مشتركين نشطين</div></div>
+    <div class="stat-box"><div class="n" style="color:var(--ink-soft);">${counts.pending_verification}</div><div class="l">لسه بيأكدوا إيميلهم</div></div>`;
+}
+function renderFilters(){
+  const filters = [
+    ['pending_payment','محتاجة موافقة'], ['all','الكل'], ['active','نشط'],
+    ['pending_verification','بانتظار الإيميل'], ['rejected','مرفوض']
+  ];
+  document.getElementById('filter-row').innerHTML = filters.map(([k,l])=>
+    `<button class="fbtn ${k===currentFilter?'active':''}" onclick="setFilter('${k}')">${l}</button>`
+  ).join('');
+}
+function setFilter(k){ currentFilter = k; renderFilters(); renderUsersList(); }
+
+function fmtDate(ts){
+  if(!ts || !ts.toDate) return '—';
+  try{ return ts.toDate().toLocaleString('ar-EG', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  catch(e){ return '—'; }
+}
+
+function renderUsersList(){
+  const el = document.getElementById('users-list');
+  let list = allUsers;
+  if(currentFilter !== 'all') list = list.filter(u => (u.awaelStatus || 'pending_verification') === currentFilter);
+  if(!list.length){ el.innerHTML = '<div class="empty-state">مفيش حسابات في القسم ده دلوقتي.</div>'; return; }
+
+  el.innerHTML = list.map(u=>{
+    const status = u.awaelStatus || 'pending_verification';
+    const plan = u.awaelPlan ? (PLAN_LABELS[u.awaelPlan] || u.awaelPlan) : '— لسه ماختارش —';
+    const verified = u.awaelEmailVerified ? '✓ متأكد' : '✕ لسه مش متأكد';
+    const quickActions = (status === 'pending_payment' || status === 'pending_verification')
+      ? `<button class="approve-btn" onclick="approveUser('${u.id}')">${ic('check')} موافقة وتفعيل</button>
+         <button class="reject-btn" onclick="rejectUser('${u.id}')">${ic('x')} رفض</button>`
+      : '';
+    const verifyBtn = !u.awaelEmailVerified
+      ? `<button class="verify-btn" onclick="forceVerifyEmail('${u.id}')">تأكيد الإيميل يدويًا</button>` : '';
+
+    return `<div class="urow" id="urow-${u.id}">
+      <div class="u-top">
+        <div>
+          <div class="u-name">${escapeHtml(u.name||'—')} <span class="badge ${status}">${STATUS_LABELS[status]||status}</span></div>
+          <div class="u-meta">
+            📧 ${escapeHtml(u.email||'—')} &nbsp;·&nbsp; 📱 ${escapeHtml(u.phone||'—')}<br>
+            🎓 <b>${escapeHtml(u.awaelUniName||u.awaelUniCode||'—')}</b> &nbsp;·&nbsp; 💳 الخطة: <b>${plan}</b><br>
+            الإيميل: ${verified} ${u.awaelVerificationCode ? `&nbsp;·&nbsp; الكود: <span class="code-pill">${escapeHtml(u.awaelVerificationCode)}</span>` : ''}<br>
+            📅 اتسجل: ${fmtDate(u.awaelCreatedAt)} ${u.awaelPlanRequestedAt ? '&nbsp;·&nbsp; 💰 طلب الاشتراك: '+fmtDate(u.awaelPlanRequestedAt) : ''}${u.awaelPayRef ? `<br>🧾 المرجع: <b>${escapeHtml(u.awaelPayRef)}</b> · ${u.awaelPayAmount||'—'} جنيه${u.awaelCoupon?' · 🎟️ '+escapeHtml(u.awaelCoupon):''}${u.awaelReceipt?` · <a href="${u.awaelReceipt}" target="_blank">عرض الإيصال</a>`:''}` : ''}
+          </div>
+        </div>
+      </div>
+      <div class="u-controls">
+        <label style="font-size:12px"><input type="checkbox" class="bulk" value="${u.id}"> تحديد</label>
+        ${quickActions}
+        ${verifyBtn}
+        <select id="plan-${u.id}">
+          <option value="">بدون خطة</option>
+          ${Object.keys(PLAN_LABELS).map(k=>`<option value="${k}" ${k===u.awaelPlan?'selected':''}>${PLAN_LABELS[k]}</option>`).join('')}
+        </select>
+        <select id="status-${u.id}">
+          ${Object.keys(STATUS_LABELS).map(k=>`<option value="${k}" ${k===status?'selected':''}>${STATUS_LABELS[k]}</option>`).join('')}
+        </select>
+        <button class="save-btn" onclick="saveUser('${u.id}')">${ic('check')} حفظ يدوي</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function approveUser(uid){
+  try{
+    const d=(await db.collection(USERS_COL).doc(uid).get()).data()||{};
+    if(!confirm('تأكيد استلام رسوم '+(d.awaelPayAmount!=null?d.awaelPayAmount+' جنيه ':'')+'من '+(d.name||d.email)+' وتفعيل حسابه؟'))return;
+    await db.collection(USERS_COL).doc(uid).update({ awaelStatus:'active', awaelActivatedMs: Date.now(), paidMs: Date.now(), confirmedBy:(auth.currentUser&&auth.currentUser.email)||'' });
+    await awaelAfterConfirm(uid,d);
+    toast('✓ تم تفعيل الحساب.');
+    loadUsers();
+  }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+async function rejectUser(uid){
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ awaelStatus:'rejected' });
+    toast('تم رفض الحساب.');
+    loadUsers();
+  }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+async function forceVerifyEmail(uid){
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ awaelEmailVerified:true });
+    toast('✓ اتأكد الإيميل يدويًا.');
+    loadUsers();
+  }catch(err){ toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+async function saveUser(uid){
+  const plan = document.getElementById('plan-'+uid).value;
+  const status = document.getElementById('status-'+uid).value;
+  const statusEl = document.getElementById('users-status');
+  try{
+    await db.collection(USERS_COL).doc(uid).update({ awaelPlan: plan || null, awaelStatus: status });
+    statusEl.className = 'status ok'; statusEl.textContent = '✓ تم تحديث المستخدم.';
+    toast('تم تحديث بيانات المستخدم.');
+    loadUsers();
+  }catch(err){ statusEl.className = 'status err'; statusEl.textContent = 'حصل خطأ: '+err.message; toast('حصل خطأ: '+err.message, {type:'err'}); }
+}
+
+/* ================= الإعدادات ================= */
+async function loadContactSettings(){
+  try{
+    const doc = await db.collection('awaelSettings').doc('contact').get();
+    const d = doc.exists ? doc.data() : {};
+    document.getElementById('set-insta').value = d.insta || '01007586279';
+    document.getElementById('set-cash').value = d.cash || '01153652279';
+    document.getElementById('set-whatsapp').value = d.whatsapp || '201153652279';
+  }catch(e){}
+}
+async function saveContactSettings(){
+  const insta = document.getElementById('set-insta').value.trim();
+  const cash = document.getElementById('set-cash').value.trim();
+  const whatsapp = document.getElementById('set-whatsapp').value.trim();
+  const statusEl = document.getElementById('settings-status');
+  try{
+    await db.collection('awaelSettings').doc('contact').set({ insta, cash, whatsapp }, { merge:true });
+    statusEl.className = 'status ok'; statusEl.textContent = '✓ اتحفظت الإعدادات.';
+    toast('تم حفظ إعدادات التواصل.');
+  }catch(err){ statusEl.className = 'status err'; statusEl.textContent = 'حصل خطأ: '+err.message; }
+}
+
+/* ================= الأرقام القومية (idGrants) — نفس نظام نُدرس معًا ================= */
+let NID_GRANTS=[], SEC_AUTH=null, NID_FAILS={};
+const nEsc=t=>String(t==null?'':t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function nidNorm(s){return String(s||'').replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d));}
+async function nidHashOf(n){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('nudrus-nid-v1:'+n));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('').slice(0,40);}
+function nidSynth(h,v){return h+((v||1)>1?'-'+v:'')+'@nid.nudrus.app';}
+function secAuth(){if(!SEC_AUTH){const app=firebase.apps.find(x=>x.name==='sec')||firebase.initializeApp(firebaseConfig,'sec');SEC_AUTH=app.auth();}return SEC_AUTH;}
+function genTemp(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r=new Uint32Array(8);crypto.getRandomValues(r);return Array.from(r).map(x=>A[x%A.length]).join('');}
+async function createTempAccount(h,ver,code){
+  const x=secAuth();
+  try{await x.createUserWithEmailAndPassword(nidSynth(h,ver),code);await x.signOut();return true;}
+  catch(e){try{await x.signOut();}catch(_){} if(e.code==='auth/email-already-in-use')return false;throw e;}
+}
+function downloadCsv(name,rows){
+  const csv='\ufeff'+rows.map(r=>r.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=name;document.body.appendChild(a);a.click();a.remove();
+}
+async function addNidGrants(){
+  const st=document.getElementById('nid-add-status');st.className='status';
+  const parts=[...new Set(nidNorm(document.getElementById('nid-ids').value).split(/[,،;\s]+/).map(x=>x.replace(/\D/g,'')).filter(Boolean))];
+  if(!parts.length){st.textContent='اكتب رقم قومي واحد على الأقل.';return;}
+  const bad=parts.filter(n=>n.length!==14);if(bad.length){st.textContent='أرقام مش 14 رقم: '+bad.slice(0,5).join('، ');return;}
+  const batch=document.getElementById('nid-batch').value.trim(),uni=document.getElementById('nid-uni').value.trim().toUpperCase(),temp=document.getElementById('nid-method').value==='temp';
+  const ex=document.getElementById('nid-expiry').value,exp=ex?new Date(ex+'T23:59:59').getTime():0;
+  st.textContent='جاري المعالجة...';
+  try{
+    const ready=[],failed=[];let skipped=0;
+    for(let k=0;k<parts.length;k++){
+      const n=parts[k],hash=await nidHashOf(n);
+      if((await db.collection('idGrants').doc(hash).get()).exists){skipped++;continue;}
+      const it={n,hash};
+      if(temp){st.textContent='جاري إنشاء الحسابات '+(k+1)+'/'+parts.length+'...';const code=genTemp();
+        try{if(!(await createTempAccount(hash,1,code))){failed.push(n);continue;}it.code=code;}catch(e){failed.push(n);continue;}}
+      ready.push(it);
+    }
+    const u=auth.currentUser;
+    for(let i=0;i<ready.length;i+=400){
+      const b=db.batch();
+      ready.slice(i,i+400).forEach(it=>{const g={hash:it.hash,last4:it.n.slice(-4),accountType:'student_teacher',batch,note:batch,claimed:false,ver:1,hasTemp:temp,createdMs:Date.now(),createdBy:u?u.uid:''};
+        if(uni)g.uniCode=uni;if(exp)g.expiresMs=exp;b.set(db.collection('idGrants').doc(it.hash),g);});
+      await b.commit();
+    }
+    st.className='status ok';
+    st.textContent='اتضاف '+ready.length+' رقم'+(skipped?' — اتخطّى '+skipped+' مسجّل قبل كده':'')+(failed.length?' — فشل '+failed.length+': '+failed.slice(0,3).join('، '):'');
+    if(temp&&ready.length){downloadCsv('nid-codes-'+new Date().toISOString().slice(0,10)+'.csv',[['الرقم القومي','كلمة المرور المبدئية','الدفعة']].concat(ready.map(it=>[it.n,it.code,batch])));alert('اتنزّل ملف الأكواد — احفظه دلوقتي، الأكواد مش هتظهر تاني.');}
+    document.getElementById('nid-ids').value='';loadNidGrants();
+  }catch(e){st.textContent='تعذّر الحفظ: '+(e.message||e.code);}
+}
+async function loadNidGrants(){
+  try{
+    const snap=await db.collection('idGrants').orderBy('createdMs','desc').limit(500).get();
+    NID_GRANTS=snap.docs.map(d=>({id:d.id,...d.data()}));NID_FAILS={};
+    try{(await db.collection('nidFails').get()).forEach(d=>NID_FAILS[d.id]=d.data());}catch(e){}
+    renderNidList();
+  }catch(e){document.getElementById('nid-list').textContent='تعذّر التحميل: '+(e.message||e.code);}
+}
+async function renderNidList(){
+  const el=document.getElementById('nid-list');if(!el)return;
+  const all=NID_GRANTS,cl=all.filter(g=>g.claimed).length;
+  document.getElementById('nid-counts').textContent='الإجمالي '+all.length+' — مفعّل '+cl+' — لسه '+(all.length-cl);
+  const q=nidNorm(document.getElementById('nid-q').value).trim().toLowerCase();let qh='';
+  if(/^\d{14}$/.test(q))qh=await nidHashOf(q);
+  const rows=all.filter(g=>!q||g.id===qh||(g.last4||'').includes(q)||(g.claimedName||'').toLowerCase().includes(q)||(g.batch||'').toLowerCase().includes(q));
+  el.innerHTML=rows.map(g=>{const f=NID_FAILS[g.id],ex=g.expiresMs&&g.expiresMs<Date.now();
+    return '<div style="border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:8px;font-size:13px"><b>••••'+nEsc(g.last4)+'</b> — '+(ex?'⌛ منتهية':g.claimed?'✓ مفعّل: '+nEsc(g.claimedName):'لسه ماتفعّلش')+(g.batch?' · '+nEsc(g.batch):'')+(g.uniCode?' · '+nEsc(g.uniCode):'')+(g.altEmail?' · ✉️ إيميل استعادة':'')+(f&&f.count?' · ⚠️ '+f.count+' محاولة فاشلة':'')
+    +'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+(g.claimed?'<button class="btn" onclick="resetNidGrant(\''+g.id+'\')">إعادة فتح بكلمة جديدة</button>':'')+(f&&f.count?'<button class="btn" onclick="clearNidFails(\''+g.id+'\')">تصفير المحاولات</button>':'')+'<button class="btn" style="background:#94411F" onclick="deleteNidGrant(\''+g.id+'\')">حذف</button></div></div>';}).join('')||'لا يوجد.';
+}
+async function deleteNidGrant(id){if(!confirm('حذف الرقم ده؟'))return;try{await db.collection('idGrants').doc(id).delete();loadNidGrants();}catch(e){alert('تعذّر: '+(e.message||e.code));}}
+async function clearNidFails(id){try{await db.collection('nidFails').doc(id).delete();loadNidGrants();}catch(e){alert('تعذّر: '+(e.message||e.code));}}
+async function resetNidGrant(id){
+  const g=NID_GRANTS.find(x=>x.id===id);if(!g)return;
+  if(!confirm('إعادة فتح الرقم؟ الحساب الحالي هيتوقف وهيتولّد كود جديد لصاحب الرقم.'))return;
+  try{
+    const ver=(g.ver||1)+1,code=genTemp();
+    if(!(await createTempAccount(id,ver,code))){alert('تعذّر: حساب الدخول الجديد موجود بالفعل.');return;}
+    if(g.claimedUid)await db.collection('users').doc(g.claimedUid).update({status:'revoked'});
+    const D=firebase.firestore.FieldValue.delete();
+    await db.collection('idGrants').doc(id).update({claimed:false,claimedUid:null,claimedName:null,claimedMs:null,ver,hasTemp:true,altEmail:D});
+    downloadCsv('nid-reset-'+g.last4+'.csv',[['آخر 4 أرقام','كلمة المرور المبدئية الجديدة'],[g.last4,code]]);
+    prompt('الكود الجديد (اتنزّل برضو في ملف) — سلّمه لصاحب الرقم:',code);loadNidGrants();
+  }catch(e){alert('تعذّر: '+(e.message||e.code));}
+}
+
+/* ================= سجل + تفعيل جماعي + تصدير + إحصائيات + كوبونات ================= */
+function nameOf(uid){const u=allUsers.find(x=>x.id===uid);return u?(u.name||u.email||''):'';}
+async function audit(action,targetUid,targetName,details){
+  try{const u=auth.currentUser;await db.collection('auditLog').add({adminUid:u?u.uid:'',adminEmail:u?(u.email||''):'',action,targetUid:targetUid||'',targetName:targetName||nameOf(targetUid)||'',details:details||'',createdMs:Date.now()});}catch(e){console.warn('audit',e);}
+}
+const AUDIT_LABELS={confirm_payment:'تأكيد دفع',reject:'رفض حساب',verify_email:'تأكيد إيميل يدوي',manual_save:'حفظ يدوي (أوائل)',bulk_approve:'تفعيل جماعي (أوائل)',coupon:'كوبون'};
+// نفس خطوات confirmPayment في نُدرس معًا: عداد الكوبون + إشعار للمستخدم + سجل
+async function awaelAfterConfirm(uid,d){
+  if(d.awaelCoupon){try{await db.collection('coupons').doc(d.awaelCoupon).update({used:firebase.firestore.FieldValue.increment(1)});}catch(e){console.warn(e);}}
+  db.collection('notifications').add({recipientUid:uid,type:'plan',text:'✓ تم تأكيد دفعك وتفعيل حسابك في أوائل — أهلًا بيك!',viewId:null,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+  audit('confirm_payment',uid,d.name||d.email,'أوائل — رسوم '+(d.awaelPayAmount!=null?d.awaelPayAmount:'?')+(d.awaelCoupon?' — كوبون '+d.awaelCoupon:''));
+}
+['rejectUser:reject','forceVerifyEmail:verify_email'].forEach(x=>{const [fn,lb]=x.split(':'),o=window[fn];window[fn]=async function(uid){await audit(lb,uid,nameOf(uid));return o(uid);};});
+const _saveUser=saveUser;
+saveUser=async function(uid){
+  const st=(document.getElementById('status-'+uid)||{}).value,pl=(document.getElementById('plan-'+uid)||{}).value,u=allUsers.find(x=>x.id===uid);
+  await audit('manual_save',uid,nameOf(uid),'الخطة: '+(pl||'—')+' / الحالة: '+st);
+  const r=await _saveUser(uid);
+  if(st==='active'&&u&&u.awaelStatus!=='active'){try{await db.collection(USERS_COL).doc(uid).update({awaelActivatedMs:Date.now()});}catch(e){}}
+  return r;
+};
+function toggleAllBulk(){const c=[...document.querySelectorAll('.bulk')],on=c.some(x=>!x.checked);c.forEach(x=>x.checked=on);}
+async function bulkApprove(){
+  const ids=[...document.querySelectorAll('.bulk:checked')].map(x=>x.value);
+  if(!ids.length){toast('حدّد حساب واحد على الأقل.');return;}
+  if(!confirm('تفعيل '+ids.length+' حساب؟'))return;
+  try{
+    for(let i=0;i<ids.length;i+=400){const b=db.batch();ids.slice(i,i+400).forEach(id=>b.update(db.collection(USERS_COL).doc(id),{awaelStatus:'active',awaelActivatedMs:Date.now()}));await b.commit();}
+    for(const id of ids){const u=allUsers.find(x=>x.id===id);if(u&&u.awaelPayRef)await awaelAfterConfirm(id,u);}
+    await audit('bulk_approve','','',ids.length+' حساب');toast('✓ اتفعّل '+ids.length+' حساب.');loadUsers();
+  }catch(e){toast('حصل خطأ: '+e.message,{type:'err'});}
+}
+function exportUsersCsv(){
+  const rows=[['الاسم','الإيميل','الموبايل','الجامعة','الخطة','الحالة','المرجع','المبلغ','الكوبون','تاريخ التسجيل']].concat(allUsers.filter(u=>u.awaelStatus!==undefined).map(u=>[u.name,u.email,u.phone,u.awaelUniName||u.awaelUniCode,PLAN_LABELS[u.awaelPlan]||u.awaelPlan||'',STATUS_LABELS[u.awaelStatus]||u.awaelStatus,u.awaelPayRef||'',u.awaelPayAmount||'',u.awaelCoupon||'',fmtDate(u.awaelCreatedAt)]));
+  downloadCsv('awael-users-'+new Date().toISOString().slice(0,10)+'.csv',rows);
+}
+async function loadInsights(){
+  const au=allUsers.filter(u=>u.awaelStatus!==undefined),act=au.filter(u=>u.awaelStatus==='active').length;
+  const days={};au.forEach(u=>{if(u.awaelCreatedAt&&u.awaelCreatedAt.toDate){const k=u.awaelCreatedAt.toDate().toISOString().slice(0,10);days[k]=(days[k]||0)+1;}});
+  const last7=Object.keys(days).sort().slice(-7).map(k=>k+': '+days[k]).join(' · ')||'—';
+  const unis={};au.forEach(u=>{const k=u.awaelUniName||u.awaelUniCode||'—';unis[k]=(unis[k]||0)+1;});
+  const topU=Object.entries(unis).sort((x,y)=>y[1]-x[1]).slice(0,5).map(e=>nEsc(e[0])+' ('+e[1]+')').join(' · ');
+  const rev=au.filter(u=>u.awaelStatus==='active').reduce((n,u)=>n+(Number(u.awaelPayAmount)||0),0);
+  let intr='—';try{const m={};(await db.collection('awaelInterest').get()).forEach(d=>{const k=d.data().uniName||d.data().uniCode||'—';m[k]=(m[k]||0)+1;});intr=Object.entries(m).sort((x,y)=>y[1]-x[1]).map(e=>nEsc(e[0])+' ('+e[1]+')').join(' · ')||'—';}catch(e){}
+  document.getElementById('ins-stats').innerHTML='<div style="line-height:2;font-size:13px">• حسابات أوائل: <b>'+au.length+'</b> — مفعّل: <b>'+act+'</b> — نسبة التحويل: <b>'+(au.length?Math.round(act/au.length*100):0)+'%</b><br>• إيرادات الاشتراكات المفعّلة: <b>'+rev+' جنيه</b><br>• آخر 7 أيام تسجيل: '+last7+'<br>• أكتر الجامعات: '+(topU||'—')+'<br>• مهتمين بجامعات لسه مش جاهزة: '+intr+'</div>';
+  loadCouponsAdmin();loadAudit();
+}
+async function loadCouponsAdmin(){
+  const el=document.getElementById('coupon-list');if(!el)return;
+  try{
+    const snap=await db.collection('coupons').get(),list=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+    el.innerHTML=list.length?list.map(c=>`<div class="urow"><div class="u-top"><div><div class="u-name">${escapeHtml(c.id)} <span class="badge ${c.active===false?'pending_payment':'active'}">${c.active===false?'موقوف':'فعّال'}</span></div>
+      <div class="u-meta">${c.type==='percent'?c.value+'%':c.value+' جنيه'} · استُخدم ${c.used||0}${c.maxUses?' / '+c.maxUses:''}${c.expiresMs?' · ينتهي '+new Date(c.expiresMs).toLocaleDateString('ar-EG'):''}${(c.appliesTo||[]).length?' · '+c.appliesTo.map(t=>t==='awael'?'أوائل':t).join('، '):' · كل التطبيقات'}</div></div></div>
+      <div class="u-controls"><button class="save-btn" onclick="toggleCoupon('${escapeHtml(c.id)}',${c.active===false})">${c.active===false?'تفعيل':'إيقاف'}</button><button class="reject-btn" onclick="deleteCoupon('${escapeHtml(c.id)}')">حذف</button></div></div>`).join(''):'<div class="urow">لسه مفيش كوبونات.</div>';
+  }catch(err){el.innerHTML='<div class="urow">تعذّر تحميل الكوبونات: '+escapeHtml(err.message)+'</div>';}
+}
+async function saveCoupon(){
+  const st=document.getElementById('coupon-adm-status');
+  const code=document.getElementById('cp-code').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+  const type=document.getElementById('cp-type').value,value=Number(document.getElementById('cp-value').value)||0;
+  if(!code||value<=0||(type==='percent'&&value>100)){st.className='status err';st.textContent='اكتب كود وقيمة صحيحة (النسبة من 1 إلى 100).';return;}
+  const exp=document.getElementById('cp-exp').value,appliesTo=Array.from(document.querySelectorAll('.cp-type:checked')).map(c=>c.value);
+  try{
+    const ref=db.collection('coupons').doc(code),old=await ref.get();
+    await ref.set({code,type,value,maxUses:Number(document.getElementById('cp-max').value)||0,expiresMs:exp?new Date(exp).getTime()+86399000:null,appliesTo,active:true,used:old.exists?(old.data().used||0):0,updatedMs:Date.now()});
+    audit('coupon','',code,'إنشاء/تعديل كوبون '+(type==='percent'?value+'%':value+' جنيه'));
+    st.className='status ok';st.textContent='✓ اتحفظ الكوبون.';loadCouponsAdmin();
+  }catch(err){st.className='status err';st.textContent='حصل خطأ: '+err.message;}
+}
+async function toggleCoupon(code,on){try{await db.collection('coupons').doc(code).update({active:on});audit('coupon','',code,on?'تفعيل':'إيقاف');loadCouponsAdmin();}catch(e){toast('حصل خطأ: '+e.message,{type:'err'});}}
+async function deleteCoupon(code){if(!confirm('حذف الكوبون '+code+'؟'))return;try{await db.collection('coupons').doc(code).delete();audit('coupon','',code,'حذف');loadCouponsAdmin();}catch(e){toast('حصل خطأ: '+e.message,{type:'err'});}}
+async function loadAudit(){
+  const el=document.getElementById('audit-list');
+  try{const sn=await db.collection('auditLog').orderBy('createdMs','desc').limit(100).get();
+    el.innerHTML=sn.docs.map(d=>{const v=d.data();return '<div class="urow"><div class="u-name">'+nEsc(AUDIT_LABELS[v.action]||v.action)+(v.targetName?' — '+nEsc(v.targetName):'')+'</div><div class="u-meta">'+nEsc(v.adminEmail||'')+' · '+new Date(v.createdMs).toLocaleString('ar-EG')+(v.details?' · '+nEsc(v.details):'')+'</div></div>';}).join('')||'<div class="urow">مفيش سجلات.</div>';
+  }catch(e){el.textContent='تعذّر تحميل السجل: '+(e.message||e.code);}
+}
+</script>
+</body>
+</html>
