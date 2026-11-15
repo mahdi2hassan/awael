@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;800;900&family=Almarai:wght@400;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{ --ink:#1B2A41; --ink-soft:#3A4B66; --paper:#FBF8F2; --paper-dim:#F1ECE1; --brick:#B8532E; --brick-dark:#94411F; --sage:#5C8368; --gold:#C79A2B; --line:#E4DDD0; --white:#FFFFFF; }
+  :root{ --ink:#0f1b36; --ink-soft:#56627c; --paper:#f4f6fb; --paper-dim:#eaeef6; --brick:#2c4194; --brick-dark:#1f2f72; --sage:#1d9a6c; --gold:#e3a82b; --line:#e2e7f1; --white:#FFFFFF; }
   *{box-sizing:border-box; margin:0; padding:0;}
   body{font-family:'Almarai',sans-serif; background:var(--paper); color:var(--ink);}
   h1,h2{font-family:'Cairo',sans-serif;}
@@ -45,7 +45,7 @@
   @keyframes panelIn{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);} }
 
   .stats-row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;}
-  .stat-box{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .stat-box{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px; text-align:center; box-shadow:0 1px 2px rgba(15,27,54,.04);}
   .stat-box .n{font-family:'Cairo',sans-serif; font-weight:900; font-size:22px; color:var(--brick);}
   .stat-box .l{font-size:11px; color:var(--ink-soft); margin-top:2px;}
 
@@ -53,7 +53,7 @@
   .fbtn{background:var(--white); border:1px solid var(--line); padding:7px 14px; border-radius:20px; font-size:12px; font-weight:700; color:var(--ink-soft);}
   .fbtn.active{background:var(--brick); border-color:var(--brick); color:#fff;}
 
-  .card{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:20px; margin-bottom:18px; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .card{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:20px; margin-bottom:18px; box-shadow:0 1px 2px rgba(15,27,54,.04);}
   .field{margin-bottom:12px;}
   .field label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:5px;}
   .field input{width:100%; padding:9px 11px; border:1px solid var(--line); border-radius:4px; font-family:inherit; font-size:13.5px; background:var(--paper);}
@@ -62,7 +62,7 @@
   .status{font-size:12px; margin-top:10px; min-height:14px;}
   .status.ok{color:var(--sage); font-weight:700;} .status.err{color:var(--brick); font-weight:700;}
 
-  .urow{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 2px rgba(27,42,65,.04);}
+  .urow{background:var(--white); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 2px rgba(15,27,54,.04);}
   .urow .u-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:6px;}
   .urow .u-name{font-weight:800; font-size:14.5px;}
   .urow .u-meta{font-size:11.5px; color:var(--ink-soft); line-height:1.9; margin-top:3px;}
@@ -75,9 +75,9 @@
   .urow .verify-btn{background:var(--paper-dim); color:var(--ink-soft); padding:6px 12px; border-radius:4px; font-size:11.5px; font-weight:700;}
   .badge{font-size:10.5px; font-weight:800; padding:3px 9px; border-radius:10px; white-space:nowrap;}
   .badge.active{background:#E3EFE6; color:#3d6b47;}
-  .badge.pending_payment{background:#FBEFE0; color:#94411F;}
-  .badge.pending_verification{background:#F1ECE1; color:#8a7550;}
-  .badge.rejected{background:#F1ECE1; color:#8a8478;}
+  .badge.pending_payment{background:#FBEFE0; color:#1f2f72;}
+  .badge.pending_verification{background:#eaeef6; color:#8a7550;}
+  .badge.rejected{background:#eaeef6; color:#8a8478;}
   .code-pill{background:var(--paper-dim); border-radius:4px; padding:2px 8px; font-family:monospace; font-weight:700; color:var(--ink);}
   .empty-state{background:var(--white); border:1px dashed var(--line); border-radius:6px; padding:30px; text-align:center; color:var(--ink-soft); font-size:13px;}
 
@@ -85,12 +85,19 @@
   .tab .icon, .icon-btn .icon{width:15px; height:15px;}
 
   #toast-stack{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); display:flex; flex-direction:column; gap:8px; z-index:999; width:min(92vw,380px);}
-  .toast{background:var(--ink); color:var(--paper); border-radius:7px; padding:11px 14px; font-size:13px; display:flex; align-items:center; gap:10px; box-shadow:0 12px 28px rgba(27,42,65,.28); animation:toastIn .2s ease;}
+  .toast{background:var(--ink); color:var(--paper); border-radius:7px; padding:11px 14px; font-size:13px; display:flex; align-items:center; gap:10px; box-shadow:0 12px 28px rgba(15,27,54,.28); animation:toastIn .2s ease;}
   .toast.err{background:var(--brick-dark);}
   .toast .toast-msg{flex:1; line-height:1.5;}
   @keyframes toastIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
 
   @media (max-width:640px){ .stats-row{grid-template-columns:repeat(2,1fr);} }
+
+/* ═══ هوية نُدرس معًا ═══ */
+:root{--radius:16px;--radius-sm:11px;--ring:0 0 0 3px rgba(44,65,148,.16);--shadow-sm:0 1px 2px rgba(15,27,54,.05),0 2px 8px rgba(15,27,54,.04);--grad:linear-gradient(135deg,#2c4194,#1f3578);}
+body{background:radial-gradient(900px 420px at 100% -10%,rgba(227,168,43,.10),transparent 60%),radial-gradient(800px 420px at -10% 0%,rgba(44,65,148,.08),transparent 60%),var(--paper);background-attachment:fixed;}
+.card,.urow{border-radius:var(--radius);box-shadow:var(--shadow-sm);}
+.btn,.save-btn,.approve-btn{background:var(--grad);}
+.reject-btn{background:#b3402a;}
 </style>
 </head>
 <body>
@@ -122,6 +129,7 @@
     </div>
     <input type="password" id="lg-pass-confirm" placeholder="تأكيد الباسورد" autocomplete="off" style="display:none">
     <button onclick="submitLocalGate()" id="lg-submit-btn">حفظ وتأمين الجهاز</button>
+    <button id="lg-bio-btn" onclick="adminBioUnlock()" style="display:none;margin-top:8px;background:var(--paper-dim);color:var(--ink);border:1px solid var(--line)">☝️ فتح بالبصمة</button>
     <div class="gate-err" id="lg-err"></div>
     <button class="lg-switch" id="lg-reset-btn" onclick="resetLocalGate()" style="display:none">نسيت الباسورد؟ إعادة ضبط قفل الجهاز</button>
   </div>
@@ -145,6 +153,7 @@
     <div><h1>لوحة تحكم أوائل</h1>
     <p>اعرف مين عمل حساب ووافق على الاشتراكات يدويًا</p></div>
     <div class="head-actions">
+      <button class="icon-btn" id="abio-btn" onclick="adminBioToggle()">☝️ تفعيل البصمة</button>
       <button class="icon-btn" onclick="lockDeviceNow()"><svg class="icon"><use href="#i-lock"></use></svg> قفل الجهاز</button>
       <button class="icon-btn" onclick="adminLogout()"><svg class="icon"><use href="#i-logout"></use></svg> خروج</button>
     </div>
@@ -196,7 +205,7 @@
       <div id="ctl-switches" style="display:grid;gap:8px"></div><button class="btn" style="margin-top:10px" onclick="saveControl()">حفظ</button><div class="status" id="ctl-status"></div></div>
     <div class="card" style="margin-top:16px"><h3 style="margin-bottom:8px">💾 نسخة احتياطية</h3>
       <p style="font-size:12.5px;margin-bottom:10px">بتشمل الإعدادات والكوبونات والأرقام القومية المسجّلة (مشفّرة). الاستيراد بيدمج مع الموجود ولا يحذف حاجة.</p>
-      <button class="btn" onclick="exportBackup()">تصدير نسخة</button> <input type="file" id="bk-file" accept=".json" style="margin:0 8px"><button class="btn" style="background:#94411F" onclick="importBackup()">استيراد</button><div class="status" id="bk-status"></div></div>
+      <button class="btn" onclick="exportBackup()">تصدير نسخة</button> <input type="file" id="bk-file" accept=".json" style="margin:0 8px"><button class="btn" style="background:#b3402a" onclick="importBackup()">استيراد</button><div class="status" id="bk-status"></div></div>
   </div>
 
   <div class="panel" id="panel-nid">
@@ -459,6 +468,7 @@ function renderUsersList(){
         <label style="font-size:12px"><input type="checkbox" class="bulk" value="${u.id}"> تحديد</label>
         ${quickActions}
         ${verifyBtn}
+         <button class="save-btn" onclick="openPerms('${u.id}')">🔑 صلاحيات</button>
         <select id="plan-${u.id}">
           <option value="">بدون خطة</option>
           ${Object.keys(PLAN_LABELS).map(k=>`<option value="${k}" ${k===u.awaelPlan?'selected':''}>${PLAN_LABELS[k]}</option>`).join('')}
@@ -595,7 +605,7 @@ async function renderNidList(){
   const rows=all.filter(g=>!q||g.id===qh||(g.last4||'').includes(q)||(g.claimedName||'').toLowerCase().includes(q)||(g.batch||'').toLowerCase().includes(q));
   el.innerHTML=rows.map(g=>{const f=NID_FAILS[g.id],ex=g.expiresMs&&g.expiresMs<Date.now();
     return '<div style="border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:8px;font-size:13px"><b>••••'+nEsc(g.last4)+'</b> — '+(ex?'⌛ منتهية':g.claimed?'✓ مفعّل: '+nEsc(g.claimedName):'لسه ماتفعّلش')+(g.batch?' · '+nEsc(g.batch):'')+(g.uniCode?' · '+nEsc(g.uniCode):'')+(g.altEmail?' · ✉️ إيميل استعادة':'')+(f&&f.count?' · ⚠️ '+f.count+' محاولة فاشلة':'')
-    +'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+(g.claimed?'<button class="btn" onclick="resetNidGrant(\''+g.id+'\')">إعادة فتح بكلمة جديدة</button>':'')+(f&&f.count?'<button class="btn" onclick="clearNidFails(\''+g.id+'\')">تصفير المحاولات</button>':'')+'<button class="btn" style="background:#94411F" onclick="deleteNidGrant(\''+g.id+'\')">حذف</button></div></div>';}).join('')||'لا يوجد.';
+    +'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">'+(g.claimed?'<button class="btn" onclick="resetNidGrant(\''+g.id+'\')">إعادة فتح بكلمة جديدة</button>':'')+(f&&f.count?'<button class="btn" onclick="clearNidFails(\''+g.id+'\')">تصفير المحاولات</button>':'')+'<button class="btn" style="background:#b3402a" onclick="deleteNidGrant(\''+g.id+'\')">حذف</button></div></div>';}).join('')||'لا يوجد.';
 }
 async function deleteNidGrant(id){if(!confirm('حذف الرقم ده؟'))return;try{await db.collection('idGrants').doc(id).delete();loadNidGrants();}catch(e){alert('تعذّر: '+(e.message||e.code));}}
 async function clearNidFails(id){try{await db.collection('nidFails').doc(id).delete();loadNidGrants();}catch(e){alert('تعذّر: '+(e.message||e.code));}}
@@ -618,10 +628,16 @@ function nameOf(uid){const u=allUsers.find(x=>x.id===uid);return u?(u.name||u.em
 async function audit(action,targetUid,targetName,details){
   try{const u=auth.currentUser;await db.collection('auditLog').add({adminUid:u?u.uid:'',adminEmail:u?(u.email||''):'',action,targetUid:targetUid||'',targetName:targetName||nameOf(targetUid)||'',details:details||'',createdMs:Date.now()});}catch(e){console.warn('audit',e);}
 }
-const AUDIT_LABELS={confirm_payment:'تأكيد دفع',reject:'رفض حساب',verify_email:'تأكيد إيميل يدوي',manual_save:'حفظ يدوي (أوائل)',bulk_approve:'تفعيل جماعي (أوائل)',coupon:'كوبون'};
+const AUDIT_LABELS={invite_reward:'مكافأة دعوة',confirm_payment:'تأكيد دفع',reject:'رفض حساب',verify_email:'تأكيد إيميل يدوي',manual_save:'حفظ يدوي (أوائل)',bulk_approve:'تفعيل جماعي (أوائل)',coupon:'كوبون'};
 // نفس خطوات confirmPayment في نُدرس معًا: عداد الكوبون + إشعار للمستخدم + سجل
 async function awaelAfterConfirm(uid,d){
   if(d.awaelCoupon){try{await db.collection('coupons').doc(d.awaelCoupon).update({used:firebase.firestore.FieldValue.increment(1)});}catch(e){console.warn(e);}}
+  if(d.awaelInvitedBy){
+    const rw='RW-'+Math.random().toString(36).slice(2,8).toUpperCase();
+    db.collection('coupons').doc(rw).set({code:rw,type:'percent',value:20,maxUses:1,used:0,appliesTo:['awael'],active:true,ownerUid:d.awaelInvitedBy,reason:'invite',createdMs:Date.now()})
+      .then(()=>db.collection('notifications').add({recipientUid:d.awaelInvitedBy,type:'invite',text:'🎁 صديقك اشترك بكود دعوتك! كود خصم 20% ليك: '+rw+' (استخدمه في خانة الكوبون عند التجديد).',read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()})).catch(()=>{});
+    audit('invite_reward',d.awaelInvitedBy,'', 'مكافأة دعوة '+rw);
+  }
   db.collection('notifications').add({recipientUid:uid,type:'plan',text:'✓ تم تأكيد دفعك وتفعيل حسابك في أوائل — أهلًا بيك!',viewId:null,read:false,createdAt:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
   audit('confirm_payment',uid,d.name||d.email,'أوائل — رسوم '+(d.awaelPayAmount!=null?d.awaelPayAmount:'?')+(d.awaelCoupon?' — كوبون '+d.awaelCoupon:''));
 }
@@ -658,7 +674,7 @@ async function loadInsights(){
   const rev=au.filter(u=>u.awaelStatus==='active').reduce((n,u)=>n+(Number(u.awaelPayAmount)||0),0);
   let intr='—';try{const m={};(await db.collection('awaelInterest').get()).forEach(d=>{const k=d.data().uniName||d.data().uniCode||'—';m[k]=(m[k]||0)+1;});intr=Object.entries(m).sort((x,y)=>y[1]-x[1]).map(e=>nEsc(e[0])+' ('+e[1]+')').join(' · ')||'—';}catch(e){}
   document.getElementById('ins-stats').innerHTML='<div style="line-height:2;font-size:13px">• حسابات أوائل: <b>'+au.length+'</b> — مفعّل: <b>'+act+'</b> — نسبة التحويل: <b>'+(au.length?Math.round(act/au.length*100):0)+'%</b><br>• إيرادات الاشتراكات المفعّلة: <b>'+rev+' جنيه</b><br>• آخر 7 أيام تسجيل: '+last7+'<br>• أكتر الجامعات: '+(topU||'—')+'<br>• مهتمين بجامعات لسه مش جاهزة: '+intr+'</div>';
-  loadCouponsAdmin();loadAudit();loadControlAdmin();
+  renderActivity(au);loadCouponsAdmin();loadAudit();loadControlAdmin();
 }
 async function loadCouponsAdmin(){
   const el=document.getElementById('coupon-list');if(!el)return;
@@ -720,6 +736,59 @@ async function importBackup(){
   if(!confirm('استيراد النسخة؟ هيدمج مع الموجود.'))return;
   try{let n=0;for(const c of ['siteSettings','coupons','idGrants'])for(const id of Object.keys(j[c]||{})){await db.collection(c).doc(id).set(j[c][id],{merge:true});n++;}
     audit('backup','','','استيراد نسخة احتياطية (أوائل)');st.className='status ok';st.textContent='✓ اتدمج '+n+' عنصر.';}catch(e){st.textContent='تعذّر الاستيراد: '+(e.message||e.code);}
+}
+
+/* ================= بصمة دخول الأدمن (WebAuthn) — بتفتح قفل الجهاز ================= */
+const ABIO='awl_admin_bio',ab64={enc:b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),dec:x=>Uint8Array.from(atob(x.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0))};
+function adminBioGet(){try{return JSON.parse(localStorage.getItem(ABIO)||'null');}catch(e){return null;}}
+async function adminBioAvailable(){try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable());}catch(e){return false;}}
+function adminBioUi(){const on=!!adminBioGet(),b=document.getElementById('lg-bio-btn'),t=document.getElementById('abio-btn');if(b)b.style.display=on&&lgMode==='unlock'?'block':'none';if(t)t.textContent=on?'☝️ إيقاف البصمة':'☝️ تفعيل البصمة';}
+async function adminBioToggle(){
+  if(adminBioGet()){localStorage.removeItem(ABIO);adminBioUi();toast('اتلغت بصمة الأدمن.');return;}
+  if(!(await adminBioAvailable())){toast('الجهاز ده مش بيدعم البصمة (محتاج https وقفل شاشة).');return;}
+  try{
+    const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'لوحة أوائل'},user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'admin',displayName:'أدمن أوائل'},
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required'},timeout:60000,attestation:'none'}});
+    localStorage.setItem(ABIO,JSON.stringify({credId:ab64.enc(cred.rawId)}));adminBioUi();toast('✓ اتفعّلت البصمة على الجهاز ده.');
+  }catch(e){toast('ماتفعّلتش البصمة: '+(e.name||e.message));}
+}
+async function adminBioUnlock(){
+  const b=adminBioGet(),err=document.getElementById('lg-err');if(!b)return;err.textContent='';
+  try{await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:ab64.dec(b.credId),transports:['internal']}],userVerification:'required',timeout:60000}});}
+  catch(e){err.textContent='ماتمش التحقق بالبصمة.';return;}
+  const u=await new Promise(r=>{const off=auth.onAuthStateChanged(x=>{off();r(x);});});
+  try{
+    if(u&&(await db.collection(ADMINS_COL).doc(u.uid).get()).exists){document.getElementById('localgate').style.display='none';document.getElementById('dash').style.display='block';loadUsers();return;}
+  }catch(e){}
+  unlockToGate();document.getElementById('gate-err').textContent='انتهت الجلسة — سجّل دخول بالإيميل مرة واحدة وبعدها البصمة هتفتح مباشرة.';
+}
+const _ilg=initLocalGate;initLocalGate=function(){_ilg();adminBioUi();};adminBioUi();
+
+/* ================= صلاحيات المستخدم (إيقاف خدمات معينة لحساب معين) ================= */
+const SERVICES={"pg-mis-egypt": "خدمات كل جامعات مصر", "pg-student": "خدمات الطالب", "pg-results": "النتائج", "pg-financial": "المالية والسداد", "pg-digital": "الخدمات الرقمية", "pg-affairs": "شئون الطلاب", "pg-military": "التربية العسكرية", "pg-research": "البحث العلمي", "pg-grad": "مشروع التخرج", "pg-reg": "تسجيل الكليات", "pg-faculties": "الكليات", "pg-links": "الروابط", "pg-centers": "المراكز"};
+function openPerms(uid){
+  const u=allUsers.find(x=>x.id===uid);if(!u)return;const bl=u.awaelBlocked||[];
+  const o=document.createElement('div');o.id='perm-ov';o.style.cssText='position:fixed;inset:0;background:rgba(15,27,54,.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  o.innerHTML='<div class="card" style="max-width:420px;width:100%;max-height:85vh;overflow:auto"><h3 style="margin-bottom:4px">🔑 صلاحيات '+nEsc(u.name||u.email)+'</h3><p style="font-size:12.5px;margin-bottom:10px">علّم على الخدمات اللي تتقفل على الحساب ده.</p>'
+   +Object.keys(SERVICES).map(k=>'<label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-weight:700;font-size:13.5px"><input type="checkbox" class="perm-cb" value="'+k+'" '+(bl.includes(k)?'checked':'')+' style="width:auto"> '+nEsc(SERVICES[k])+'</label>').join('')
+   +'<div style="display:flex;gap:8px;margin-top:12px"><button class="btn" onclick="savePerms(\''+uid+'\')">حفظ</button><button class="btn" style="background:var(--ink-soft)" onclick="document.getElementById(\'perm-ov\').remove()">إلغاء</button></div></div>';
+  document.body.appendChild(o);
+}
+async function savePerms(uid){
+  const arr=[...document.querySelectorAll('.perm-cb:checked')].map(c=>c.value);
+  try{await db.collection(USERS_COL).doc(uid).update({awaelBlocked:arr});await audit('perms',uid,nameOf(uid),arr.length?'قفل: '+arr.map(k=>SERVICES[k]).join('، '):'فتح كل الخدمات');
+    const u=allUsers.find(x=>x.id===uid);if(u)u.awaelBlocked=arr;document.getElementById('perm-ov').remove();toast('✓ اتحفظت الصلاحيات.');}
+  catch(e){toast('تعذّر الحفظ: '+(e.message||e.code),{type:'err'});}
+}
+AUDIT_LABELS.perms='صلاحيات مستخدم';
+
+/* ================= لوحة النشاط ================= */
+function renderActivity(au){
+  const now=Date.now(),act=(d)=>au.filter(u=>u.awaelLastActiveMs&&now-u.awaelLastActiveMs<d*864e5).length;
+  const byUni={};au.forEach(u=>{if(u.awaelLastActiveMs&&now-u.awaelLastActiveMs<30*864e5){const k=u.awaelUniName||u.awaelUniCode||'—';byUni[k]=(byUni[k]||0)+1;}});
+  const ks=Object.keys(byUni).sort((x,y)=>byUni[y]-byUni[x]),mx=Math.max(1,...ks.map(k=>byUni[k]));
+  document.getElementById('ins-stats').insertAdjacentHTML('beforeend','<hr style="margin:12px 0;border:0;border-top:1px solid var(--line)"><b>🕒 النشاط</b><div style="font-size:13px;line-height:2">نشطين النهاردة: <b>'+act(1)+'</b> · آخر 7 أيام: <b>'+act(7)+'</b> · آخر 30 يوم: <b>'+act(30)+'</b></div>'
+    +ks.map(k=>'<div style="display:flex;align-items:center;gap:10px;margin:6px 0;font-size:13px"><span style="flex:0 0 130px">'+nEsc(k)+'</span><div style="flex:1;height:12px;background:var(--paper-dim);border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:'+Math.round(byUni[k]/mx*100)+'%;background:var(--grad);border-radius:99px"></i></div><b>'+byUni[k]+'</b></div>').join(''));
 }
 </script>
 </body>
