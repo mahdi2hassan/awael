@@ -2022,6 +2022,14 @@ async function registerInterest(){
   catch(e){awlToast('تعذّر التسجيل: '+(e.message||e.code));}
 }
 
+/* ─── التحكم الشامل (siteSettings/control — مفاتيح من لوحة الأدمن) ─── */
+window.__ctl={};
+function ctlOn(k){return window.__ctl[k]!==false;}
+function ctlBlocked(k,label){if(ctlOn(k))return false;alert('الإدارة أوقفت '+label+' مؤقتًا.');return true;}
+db.collection('siteSettings').doc('control').get().then(d=>{window.__ctl=d.exists?d.data():{};}).catch(()=>{});
+const _ctlPay=finalizePaidPlan;finalizePaidPlan=function(){if(ctlBlocked('awaelPayments','استقبال طلبات الاشتراك'))return Promise.resolve();return _ctlPay.apply(this,arguments);};
+const _ctlNid=nidSubmit;nidSubmit=function(){if(ctlBlocked('awaelNidLogin','الدخول بالرقم القومي'))return Promise.resolve();return _ctlNid.apply(this,arguments);};
+const _ctlBio=bioEnable;bioEnable=function(){if(ctlBlocked('awaelBio','الدخول بالبصمة'))return Promise.resolve();return _ctlBio.apply(this,arguments);};
 window.onload = ()=>{ renderUniSelect(); };
 
 function logout(){

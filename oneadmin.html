@@ -188,7 +188,15 @@
       <button class="btn" onclick="saveCoupon()">حفظ الكوبون</button>
       <div class="status" id="coupon-adm-status"></div>
       <div id="coupon-list" style="margin-top:12px"></div></div>
-    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:8px">📜 سجل الإجراءات</h3><div id="audit-list"></div></div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:8px">📜 سجل الإجراءات</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><select id="audit-f" onchange="renderAudit()"><option value="">كل الإجراءات</option></select><input type="text" id="audit-q" placeholder="بحث..." oninput="renderAudit()"><button class="save-btn" onclick="auditCsv()">📥 تصدير CSV</button></div>
+      <div id="audit-list"></div></div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:8px">🎛️ التحكم الشامل في أوائل</h3>
+      <p style="font-size:12.5px;margin-bottom:10px">مفاتيح إيقاف سريعة (كولكشن siteSettings/control المشترك). بتسري عند تحديث صفحة المستخدمين.</p>
+      <div id="ctl-switches" style="display:grid;gap:8px"></div><button class="btn" style="margin-top:10px" onclick="saveControl()">حفظ</button><div class="status" id="ctl-status"></div></div>
+    <div class="card" style="margin-top:16px"><h3 style="margin-bottom:8px">💾 نسخة احتياطية</h3>
+      <p style="font-size:12.5px;margin-bottom:10px">بتشمل الإعدادات والكوبونات والأرقام القومية المسجّلة (مشفّرة). الاستيراد بيدمج مع الموجود ولا يحذف حاجة.</p>
+      <button class="btn" onclick="exportBackup()">تصدير نسخة</button> <input type="file" id="bk-file" accept=".json" style="margin:0 8px"><button class="btn" style="background:#94411F" onclick="importBackup()">استيراد</button><div class="status" id="bk-status"></div></div>
   </div>
 
   <div class="panel" id="panel-nid">
@@ -650,7 +658,7 @@ async function loadInsights(){
   const rev=au.filter(u=>u.awaelStatus==='active').reduce((n,u)=>n+(Number(u.awaelPayAmount)||0),0);
   let intr='—';try{const m={};(await db.collection('awaelInterest').get()).forEach(d=>{const k=d.data().uniName||d.data().uniCode||'—';m[k]=(m[k]||0)+1;});intr=Object.entries(m).sort((x,y)=>y[1]-x[1]).map(e=>nEsc(e[0])+' ('+e[1]+')').join(' · ')||'—';}catch(e){}
   document.getElementById('ins-stats').innerHTML='<div style="line-height:2;font-size:13px">• حسابات أوائل: <b>'+au.length+'</b> — مفعّل: <b>'+act+'</b> — نسبة التحويل: <b>'+(au.length?Math.round(act/au.length*100):0)+'%</b><br>• إيرادات الاشتراكات المفعّلة: <b>'+rev+' جنيه</b><br>• آخر 7 أيام تسجيل: '+last7+'<br>• أكتر الجامعات: '+(topU||'—')+'<br>• مهتمين بجامعات لسه مش جاهزة: '+intr+'</div>';
-  loadCouponsAdmin();loadAudit();
+  loadCouponsAdmin();loadAudit();loadControlAdmin();
 }
 async function loadCouponsAdmin(){
   const el=document.getElementById('coupon-list');if(!el)return;
@@ -678,9 +686,40 @@ async function toggleCoupon(code,on){try{await db.collection('coupons').doc(code
 async function deleteCoupon(code){if(!confirm('حذف الكوبون '+code+'؟'))return;try{await db.collection('coupons').doc(code).delete();audit('coupon','',code,'حذف');loadCouponsAdmin();}catch(e){toast('حصل خطأ: '+e.message,{type:'err'});}}
 async function loadAudit(){
   const el=document.getElementById('audit-list');
-  try{const sn=await db.collection('auditLog').orderBy('createdMs','desc').limit(100).get();
-    el.innerHTML=sn.docs.map(d=>{const v=d.data();return '<div class="urow"><div class="u-name">'+nEsc(AUDIT_LABELS[v.action]||v.action)+(v.targetName?' — '+nEsc(v.targetName):'')+'</div><div class="u-meta">'+nEsc(v.adminEmail||'')+' · '+new Date(v.createdMs).toLocaleString('ar-EG')+(v.details?' · '+nEsc(v.details):'')+'</div></div>';}).join('')||'<div class="urow">مفيش سجلات.</div>';
+  try{const sn=await db.collection('auditLog').orderBy('createdMs','desc').limit(300).get();window.__aud=sn.docs.map(d=>d.data());
+    const f=document.getElementById('audit-f'),keys=[...new Set(window.__aud.map(v=>v.action))];f.innerHTML='<option value="">كل الإجراءات</option>'+keys.map(k=>'<option value="'+nEsc(k)+'">'+nEsc(AUDIT_LABELS[k]||k)+'</option>').join('');renderAudit();
   }catch(e){el.textContent='تعذّر تحميل السجل: '+(e.message||e.code);}
+}
+function auditFiltered(){const f=document.getElementById('audit-f').value,q=(document.getElementById('audit-q').value||'').toLowerCase();return(window.__aud||[]).filter(v=>(!f||v.action===f)&&(!q||[v.action,AUDIT_LABELS[v.action],v.adminEmail,v.targetName,v.details].join(' ').toLowerCase().includes(q)));}
+function renderAudit(){
+  document.getElementById('audit-list').innerHTML=auditFiltered().slice(0,100).map(v=>'<div class="urow"><div class="u-name">'+nEsc(AUDIT_LABELS[v.action]||v.action)+(v.targetName?' — '+nEsc(v.targetName):'')+'</div><div class="u-meta">'+nEsc(v.adminEmail||'')+' · '+new Date(v.createdMs).toLocaleString('ar-EG')+(v.details?' · '+nEsc(v.details):'')+'</div></div>').join('')||'<div class="urow">مفيش سجلات.</div>';
+}
+function auditCsv(){const r=auditFiltered();if(!r.length){toast('مفيش سجلات للتصدير.');return;}downloadCsv('audit-log.csv',[['التاريخ','المسؤول','الإجراء','المستهدف','التفاصيل']].concat(r.map(v=>[new Date(v.createdMs).toISOString(),v.adminEmail||'',AUDIT_LABELS[v.action]||v.action,v.targetName||'',v.details||''])));}
+const CTL_SWITCHES=[['awaelPayments','استقبال طلبات الدفع والاشتراك'],['awaelNidLogin','الدخول والتفعيل بالرقم القومي'],['awaelBio','الدخول بالبصمة']];
+let CTL={};
+async function loadControlAdmin(){
+  try{const d=await db.collection('siteSettings').doc('control').get();CTL=d.exists?d.data():{};}catch(e){CTL={};}
+  document.getElementById('ctl-switches').innerHTML=CTL_SWITCHES.map(x=>'<label style="display:flex;gap:10px;align-items:center;font-weight:700;font-size:13.5px"><input type="checkbox" class="ctl-sw" value="'+x[0]+'" '+(CTL[x[0]]===false?'':'checked')+' style="width:auto"> '+nEsc(x[1])+'</label>').join('');
+}
+async function saveControl(){
+  const st=document.getElementById('ctl-status'),o={};document.querySelectorAll('.ctl-sw').forEach(c=>o[c.value]=c.checked);
+  try{await db.collection('siteSettings').doc('control').set(o,{merge:true});audit('control','','','تعديل إعدادات التحكم (أوائل)');st.className='status ok';st.textContent='✓ اتحفظت.';}catch(e){st.textContent='تعذّر الحفظ: '+(e.message||e.code);}
+}
+async function exportBackup(){
+  const st=document.getElementById('bk-status');st.textContent='جاري التجميع...';
+  try{const o={app:'awael',version:1,at:new Date().toISOString(),siteSettings:{},coupons:{},idGrants:{}};
+    for(const c of ['siteSettings','coupons','idGrants'])(await db.collection(c).get()).forEach(d=>o[c][d.id]=d.data());
+    const b=document.createElement('a');b.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));b.download='awael-backup-'+o.at.slice(0,10)+'.json';b.click();
+    audit('backup','','','تصدير نسخة احتياطية (أوائل)');st.className='status ok';st.textContent='✓ تم: '+Object.keys(o.siteSettings).length+' إعدادات، '+Object.keys(o.coupons).length+' كوبون، '+Object.keys(o.idGrants).length+' منحة.';
+  }catch(e){st.textContent='تعذّر التصدير: '+(e.message||e.code);}
+}
+async function importBackup(){
+  const st=document.getElementById('bk-status'),f=document.getElementById('bk-file').files[0];if(!f){st.textContent='اختر ملف النسخة.';return;}
+  let j;try{j=JSON.parse(await f.text());}catch(e){st.textContent='الملف مش JSON صالح.';return;}
+  if(j.app!=='awael'){st.textContent='الملف مش نسخة احتياطية من أوائل.';return;}
+  if(!confirm('استيراد النسخة؟ هيدمج مع الموجود.'))return;
+  try{let n=0;for(const c of ['siteSettings','coupons','idGrants'])for(const id of Object.keys(j[c]||{})){await db.collection(c).doc(id).set(j[c][id],{merge:true});n++;}
+    audit('backup','','','استيراد نسخة احتياطية (أوائل)');st.className='status ok';st.textContent='✓ اتدمج '+n+' عنصر.';}catch(e){st.textContent='تعذّر الاستيراد: '+(e.message||e.code);}
 }
 </script>
 </body>
